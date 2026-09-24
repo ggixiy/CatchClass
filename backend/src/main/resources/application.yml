@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: catchclass
+  datasource:
+    url: jdbc:postgresql://localhost:5433/catchclass
+    username: catchclass
+    password: catchclass
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

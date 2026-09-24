@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: catchclass-postgres
+    environment:
+      POSTGRES_DB: catchclass
+      POSTGRES_USER: catchclass
+      POSTGRES_PASSWORD: catchclass
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: catchclass-mailpit
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # веб-інтерфейс листів
+
+volumes:
+  pgdata:
