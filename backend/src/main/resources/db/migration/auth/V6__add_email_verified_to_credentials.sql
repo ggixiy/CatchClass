@@ -1,0 +1,1 @@
+ALTER TABLE auth.credentials ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT false;

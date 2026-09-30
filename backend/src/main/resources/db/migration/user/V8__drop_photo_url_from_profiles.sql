@@ -1,0 +1,1 @@
+ALTER TABLE users.profiles DROP COLUMN photo_url;

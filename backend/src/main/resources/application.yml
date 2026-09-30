@@ -11,9 +11,36 @@ spring:
       ddl-auto: validate
   flyway:
     locations: classpath:db/migration
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+catchclass:
+  auth:
+    jwt-secret: ${JWT_SECRET:dev-only-change-me-please-not-for-production-use-1234567890}
+    access-token-ttl: 15m
+    refresh-token-ttl: 30d
+    email-verification-ttl: 24h
+    password-reset-ttl: 1h
+  notification:
+    frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
+
+server:
+  tomcat:
+    max-swallow-size: 10MB
