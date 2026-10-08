@@ -40,6 +40,10 @@ catchclass:
     password-reset-ttl: 1h
   notification:
     frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
+  livekit:
+    url: ${LIVEKIT_URL:wss://catchclass-te2ny9ze.livekit.cloud}
+    api-key: ${LIVEKIT_API_KEY:APIYReVnexhthjR}
+    api-secret: ${LIVEKIT_API_SECRET:hn7KeU24LLVBgBdpwDhxjDOBqoMXX06RIBDO8GyidwK}
 
 server:
   tomcat:

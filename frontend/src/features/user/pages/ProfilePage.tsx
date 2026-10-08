@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
 import { logout } from '@/features/auth'
 import { ApiError } from '@/shared/api/http'
 import { deleteMyPhoto, getMyProfile, updateMyProfile, uploadMyPhoto, UserProfile } from '../api/userApi'
@@ -83,6 +83,7 @@ export function ProfilePage() {
     return (
         <main className="page">
             <h1>Профіль</h1>
+            <p><Link to="/">На головну</Link></p>
             {error && <p className="error">{error}</p>}
 
             <div className="avatar-row">
