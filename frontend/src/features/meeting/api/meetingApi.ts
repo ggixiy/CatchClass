@@ -12,6 +12,7 @@ export interface Meeting {
     durationMinutes: number
     recurrence: RecurrenceRule
     recurrenceEndsAt: string | null
+    waitingRoomEnabled: boolean
 }
 
 export interface MeetingOccurrence {
@@ -32,6 +33,7 @@ export interface MeetingFormData {
     recurrenceEndsAt: string | null
     requirePassword: boolean
     password: string
+    waitingRoomEnabled: boolean
 }
 
 const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'

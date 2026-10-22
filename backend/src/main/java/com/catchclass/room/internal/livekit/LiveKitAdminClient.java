@@ -34,9 +34,16 @@ public class LiveKitAdminClient {
         runOrThrow(client.deleteRoom(roomName), "end_meeting_failed", "Не вдалося завершити заняття");
     }
 
-    /** Глушить мікрофон (аудіотреки) усіх учасників кімнати, хто ще не заглушений. */
-    public void muteAllAudio(String roomName) {
+    /**
+     * Глушить мікрофон (аудіотреки) усіх учасників кімнати, хто ще не заглушений,
+     * окрім excludeIdentity — організатора, який і натиснув «Mute all»: самого себе
+     * це не повинно стосуватись.
+     */
+    public void muteAllAudio(String roomName, String excludeIdentity) {
         for (LivekitModels.ParticipantInfo participant : listParticipants(roomName)) {
+            if (participant.getIdentity().equals(excludeIdentity)) {
+                continue;
+            }
             for (LivekitModels.TrackInfo track : participant.getTracksList()) {
                 if (track.getType() == LivekitModels.TrackType.AUDIO && !track.getMuted()) {
                     runOrThrow(

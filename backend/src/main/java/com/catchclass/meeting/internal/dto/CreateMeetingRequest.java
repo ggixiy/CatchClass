@@ -19,6 +19,7 @@ public record CreateMeetingRequest(
         @NotNull RecurrenceRule recurrence,
         Instant recurrenceEndsAt, // null: повторюється без визначеної дати завершення
         boolean requirePassword,
-        @Size(max = 20) String password
+        @Size(max = 20) String password,
+        boolean waitingRoomEnabled
 ) {
 }

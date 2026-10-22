@@ -1,0 +1,2 @@
+ALTER TABLE meetings.meetings
+    ADD COLUMN instant BOOLEAN NOT NULL DEFAULT FALSE;

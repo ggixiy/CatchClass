@@ -56,7 +56,10 @@ public class RoomService implements RoomApi {
 
     // ---- для RoomController ----
 
-    /** Організатора допускає миттєво; гостя ставить у чергу очікування. */
+    /**
+     * Організатора допускає миттєво завжди. Гостя — миттєво, якщо в заняття вимкнена
+     * кімната очікування, інакше ставить його у чергу на допуск.
+     */
     public RoomStatusResponse join(UUID currentUserId, String publicId, String password) {
         MeetingAccess meeting = meetingApi.checkAccess(publicId, password)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "invalid_meeting_credentials",
@@ -66,9 +69,10 @@ public class RoomService implements RoomApi {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "user_not_found", "Користувача не знайдено"));
 
         boolean isHost = meeting.hostUserId().equals(currentUserId);
-        WaitingGuest guest = registry.putIfAbsent(meeting.id(), currentUserId, user.displayName(), isHost);
+        boolean autoAdmit = isHost || !meeting.waitingRoomEnabled();
+        WaitingGuest guest = registry.putIfAbsent(meeting.id(), currentUserId, user.displayName(), isHost, autoAdmit);
 
-        if (isHost && guest.getAccessToken() == null) {
+        if (autoAdmit && guest.getAccessToken() == null) {
             guest.admit(generateToken(meeting.publicId(), currentUserId, user.displayName()));
         }
 
@@ -112,7 +116,13 @@ public class RoomService implements RoomApi {
 
     public void muteAll(UUID meetingId, UUID currentUserId) {
         String publicId = assertHost(meetingId, currentUserId);
-        adminClient.muteAllAudio(publicId);
+        // Самого організатора, що натиснув кнопку, глушити не потрібно.
+        adminClient.muteAllAudio(publicId, currentUserId.toString());
+    }
+
+    public void leave(UUID meetingId, UUID currentUserId) {
+        // Гість сам відмовляється чекати на допуск — просто прибираємо його з реєстру.
+        registry.remove(meetingId, currentUserId);
     }
 
     public void endForAll(UUID meetingId, UUID currentUserId) {
@@ -135,7 +145,8 @@ public class RoomService implements RoomApi {
 
     private RoomStatusResponse toStatusResponse(UUID meetingId, WaitingGuest guest, String roomName) {
         String serverUrl = guest.getStatus() == GuestStatus.ADMITTED ? properties.url() : null;
-        return new RoomStatusResponse(meetingId, guest.getStatus().name(), guest.getAccessToken(), serverUrl, roomName);
+        return new RoomStatusResponse(meetingId, guest.getStatus().name(), guest.getAccessToken(), serverUrl, roomName,
+                guest.isHost());
     }
 
     // Без явних canPublish/canSubscribe: LiveKit сам дозволяє обидва,

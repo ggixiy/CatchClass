@@ -64,6 +64,11 @@ class RoomController {
         roomService.muteAll(meetingId, CurrentUser.require().id());
     }
 
+    @PostMapping("/{meetingId}/leave")
+    void leave(@PathVariable UUID meetingId) {
+        roomService.leave(meetingId, CurrentUser.require().id());
+    }
+
     @PostMapping("/{meetingId}/end")
     void end(@PathVariable UUID meetingId) {
         roomService.endForAll(meetingId, CurrentUser.require().id());

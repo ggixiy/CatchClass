@@ -4,6 +4,7 @@ import { generateMeetingPassword, Meeting, MeetingFormData, RecurrenceRule } fro
 
 interface ScheduleMeetingFormProps {
     initial?: Meeting
+    initialDate?: string
     onSubmit: (data: MeetingFormData) => Promise<void>
     onCancel: () => void
 }
@@ -15,15 +16,29 @@ function toLocalInputValue(iso: string | undefined): string {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export function ScheduleMeetingForm({ initial, onSubmit, onCancel }: ScheduleMeetingFormProps) {
+// Якщо на календарі вже обраний день — підставляємо його датою початку,
+// а час беремо найближчий зручний (округлений вгору до 30 хв від поточного).
+function defaultStartForDay(day: string): string {
+    const [y, m, d] = day.split('-').map(Number)
+    const now = new Date()
+    const rounded = new Date(y, m - 1, d, now.getHours(), now.getMinutes())
+    rounded.setMinutes(Math.ceil(rounded.getMinutes() / 30) * 30, 0, 0)
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${rounded.getFullYear()}-${pad(rounded.getMonth() + 1)}-${pad(rounded.getDate())}T${pad(rounded.getHours())}:${pad(rounded.getMinutes())}`
+}
+
+export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }: ScheduleMeetingFormProps) {
     const [title, setTitle] = useState(initial?.title ?? '')
     const [description, setDescription] = useState(initial?.description ?? '')
-    const [startLocal, setStartLocal] = useState(toLocalInputValue(initial?.startTime))
+    const [startLocal, setStartLocal] = useState(
+        initial?.startTime ? toLocalInputValue(initial.startTime) : initialDate ? defaultStartForDay(initialDate) : ''
+    )
     const [durationMinutes, setDurationMinutes] = useState(initial?.durationMinutes ?? 60)
     const [recurrence, setRecurrence] = useState<RecurrenceRule>(initial?.recurrence ?? 'NONE')
     const [endsLocal, setEndsLocal] = useState(toLocalInputValue(initial?.recurrenceEndsAt ?? undefined))
     const [requirePassword, setRequirePassword] = useState(initial ? Boolean(initial.password) : true)
     const [password, setPassword] = useState(initial?.password ?? generateMeetingPassword())
+    const [waitingRoomEnabled, setWaitingRoomEnabled] = useState(initial?.waitingRoomEnabled ?? true)
     const [error, setError] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
 
@@ -47,6 +62,7 @@ export function ScheduleMeetingForm({ initial, onSubmit, onCancel }: ScheduleMee
                 recurrenceEndsAt: recurrence !== 'NONE' && endsLocal ? new Date(endsLocal).toISOString() : null,
                 requirePassword,
                 password: requirePassword ? password : '',
+                waitingRoomEnabled,
             })
         } catch (err) {
             setError(err instanceof ApiError ? err.message : 'Не вдалося зберегти заняття')
@@ -106,6 +122,18 @@ export function ScheduleMeetingForm({ initial, onSubmit, onCancel }: ScheduleMee
                         <button type="button" onClick={() => setPassword(generateMeetingPassword())}>Згенерувати</button>
                     </div>
                 </label>
+            )}
+
+            <label className="checkbox-row">
+                <input
+                    type="checkbox"
+                    checked={waitingRoomEnabled}
+                    onChange={(e) => setWaitingRoomEnabled(e.target.checked)}
+                />
+                Увімкнути кімнату очікування
+            </label>
+            {!waitingRoomEnabled && (
+                <p className="hint">Учасники приєднуватимуться одразу, без допуску організатором.</p>
             )}
 
             <div className="form-actions">

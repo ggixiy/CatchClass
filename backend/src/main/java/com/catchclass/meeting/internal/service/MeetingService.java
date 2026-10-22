@@ -67,16 +67,19 @@ public class MeetingService implements MeetingApi {
         String password = resolvePassword(request.requirePassword(), request.password());
         Meeting meeting = new Meeting(UUID.randomUUID(), generateUniquePublicId(), password, hostUserId,
                 request.title(), request.description(), request.startTime(), request.durationMinutes(),
-                request.recurrence(), request.recurrenceEndsAt());
+                request.recurrence(), request.recurrenceEndsAt(), request.waitingRoomEnabled(), false);
         repository.save(meeting);
         return toResponse(meeting);
     }
 
-    /** "New meeting": миттєвий запуск без форми — починається зараз, година, без повторення. */
+    /**
+     * "New meeting": миттєвий запуск без форми — найлегший спосіб швидко зібратися.
+     * Навмисно без кімнати очікування (усі заходять одразу) і без сліду в календарі.
+     */
     @Transactional
     public MeetingResponse createInstant(UUID hostUserId, String title) {
         Meeting meeting = new Meeting(UUID.randomUUID(), generateUniquePublicId(), null, hostUserId,
-                title, null, Instant.now(), 60, RecurrenceRule.NONE, null);
+                title, null, Instant.now(), 60, RecurrenceRule.NONE, null, false, true);
         repository.save(meeting);
         return toResponse(meeting);
     }
@@ -93,7 +96,7 @@ public class MeetingService implements MeetingApi {
                 request.recurrenceEndsAt(), id);
         String password = resolvePassword(request.requirePassword(), request.password());
         meeting.update(request.title(), request.description(), request.startTime(), request.durationMinutes(),
-                request.recurrence(), request.recurrenceEndsAt(), password);
+                request.recurrence(), request.recurrenceEndsAt(), password, request.waitingRoomEnabled());
         return toResponse(meeting);
     }
 
@@ -106,6 +109,7 @@ public class MeetingService implements MeetingApi {
     @Transactional(readOnly = true)
     public List<MeetingOccurrenceResponse> listOccurrences(UUID hostUserId, Instant from, Instant to) {
         return repository.findByHostUserId(hostUserId).stream()
+                .filter(meeting -> !meeting.isInstant())
                 .flatMap(meeting -> MeetingOccurrenceExpander
                         .expand(meeting.getStartTime(), meeting.getDurationMinutes(), meeting.getRecurrenceRule(),
                                 meeting.getRecurrenceEndsAt(), from, to)
@@ -141,7 +145,7 @@ public class MeetingService implements MeetingApi {
                 MeetingOccurrenceExpander.expand(start, durationMinutes, rule, recurrenceEndsAt, windowFrom, windowTo);
 
         for (Meeting other : repository.findByHostUserId(hostUserId)) {
-            if (other.getId().equals(excludeMeetingId)) {
+            if (other.getId().equals(excludeMeetingId) || other.isInstant()) {
                 continue;
             }
             List<MeetingOccurrenceExpander.Occurrence> otherOccurrences = MeetingOccurrenceExpander.expand(
@@ -201,12 +205,13 @@ public class MeetingService implements MeetingApi {
     }
 
     private MeetingAccess toAccess(Meeting meeting) {
-        return new MeetingAccess(meeting.getId(), meeting.getPublicId(), meeting.getTitle(), meeting.getHostUserId());
+        return new MeetingAccess(meeting.getId(), meeting.getPublicId(), meeting.getTitle(), meeting.getHostUserId(),
+                meeting.isWaitingRoomEnabled());
     }
 
     private MeetingResponse toResponse(Meeting meeting) {
         return new MeetingResponse(meeting.getId(), meeting.getPublicId(), meeting.getPassword(), meeting.getTitle(),
                 meeting.getDescription(), meeting.getStartTime(), meeting.getDurationMinutes(),
-                meeting.getRecurrenceRule(), meeting.getRecurrenceEndsAt());
+                meeting.getRecurrenceRule(), meeting.getRecurrenceEndsAt(), meeting.isWaitingRoomEnabled());
     }
 }

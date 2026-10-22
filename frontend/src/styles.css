@@ -16,6 +16,8 @@ button:hover { background: #f3f4f6; }
 
 .btn-primary { background: #1168bd; color: #fff; border-color: #1168bd; font-weight: 600; }
 .btn-primary:hover { background: #0d5499; }
+.btn-secondary { background: transparent; color: var(--text); border-color: #c33; }
+.btn-secondary:hover { background: #fdecec; }
 .btn-block { width: 100%; margin-bottom: 1rem; }
 
 .icon-button {border: none; background: transparent; color: var(--text); font-size: 1.25rem; line-height: 1; padding: 0.25rem 0.6rem;}
@@ -70,3 +72,68 @@ button:hover { background: #f3f4f6; }
 
 .preview-box { width: 100%; max-width: 28rem; aspect-ratio: 4 / 3; background: #1a1f27; border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
 .preview-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.camera-off-note {
+  width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  color: #c6ccd6; font-size: 0.9rem;
+}
+
+/* LiveKit-тема (data-lk-theme) задає білий колір тексту на своєму кореневому елементі,
+   і без явного перевизначення він успадковується аж до наших елементів нижче —
+   звідси був білий текст на білому фоні. Явно задаємо темний колір тут. */
+.room-side-toggles {
+  position: fixed; top: 1rem; right: 1rem; z-index: 55;
+  display: flex; gap: 0.5rem;
+}
+.participants-toggle {
+  background: #fff; color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.5rem 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.room-panels {
+  position: fixed; top: 4rem; right: 1rem; z-index: 60;
+  display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end;
+}
+.participants-panel {
+  background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem; width: 20rem; max-height: 50vh; overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+.chat-panel {
+  background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 8px;
+  padding: 1rem; width: 20rem; max-height: 50vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+.chat-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.chat-panel-header h3 { margin: 0; font-size: 1rem; }
+.chat-panel-header button { border: none; background: none; font-size: 1.1rem; line-height: 1; padding: 0.1rem 0.4rem; }
+.chat-panel-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; min-height: 6rem; }
+.chat-message { background: var(--bg-muted, #f3f4f6); border-radius: 8px; padding: 0.4rem 0.6rem; max-width: 90%; }
+.chat-message-own { background: #e6f0fb; align-self: flex-end; }
+.chat-message-meta { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.15rem; }
+.chat-message-text { font-size: 0.9rem; word-break: break-word; white-space: pre-wrap; }
+.chat-panel-form { display: flex; gap: 0.4rem; }
+.chat-panel-form input { flex: 1; }
+.participants-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.participants-panel-header h3 { margin: 0; font-size: 1rem; }
+.participants-panel .icon-button { border: none; background: none; font-size: 1.1rem; line-height: 1; padding: 0.1rem 0.4rem; }
+.participants-section { margin-bottom: 1rem; }
+.participants-section h4 { margin: 0 0 0.5rem; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.participants-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.participants-section-header h4 { margin: 0; }
+.participants-section-header button { padding: 0.2rem 0.6rem; font-size: 0.8rem; }
+.participants-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.participants-item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.participants-item .form-actions { gap: 0.4rem; }
+.participants-item button { padding: 0.25rem 0.6rem; font-size: 0.85rem; }
+.participant-status { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+.kick-button { margin-left: 0.5rem; padding: 0.15rem 0.5rem; font-size: 0.75rem; color: #c0392b; border-color: #c0392b; }
+
+.device-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.device-select { padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; max-width: 14rem; }
+.mic-level-meter {
+  width: 100%; max-width: 28rem; height: 0.6rem; background: #e2e6eb; border-radius: 999px;
+  overflow: hidden; margin: 0.5rem 0;
+}
+.mic-level-fill {
+  height: 100%; background: #22c55e; border-radius: 999px; transition: width 80ms linear;
+}

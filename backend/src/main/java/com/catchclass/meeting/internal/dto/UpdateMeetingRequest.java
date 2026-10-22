@@ -19,6 +19,7 @@ public record UpdateMeetingRequest(
         @NotNull RecurrenceRule recurrence,
         Instant recurrenceEndsAt,
         boolean requirePassword,
-        @Size(max = 20) String password
+        @Size(max = 20) String password,
+        boolean waitingRoomEnabled
 ) {
 }

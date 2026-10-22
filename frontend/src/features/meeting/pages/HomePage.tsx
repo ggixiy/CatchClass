@@ -11,7 +11,7 @@ import { ScheduleMeetingForm } from '../components/ScheduleMeetingForm'
 import { getMyProfile } from '@/features/user'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { joinRoom } from '@/features/room'
+
 
 function monthRange(year: number, month: number) {
     return {
@@ -38,20 +38,12 @@ export function HomePage() {
     const [joinPassword, setJoinPassword] = useState('')
     const [joinError, setJoinError] = useState<string | null>(null)
 
-    async function startJoin(publicId: string, password: string) {
+    // Більше не звертаємось до /rooms/join тут — спершу ведемо людину на екран
+    // перевірки камери/мікрофона (PreJoinLobby), а сам запит на вхід виконується вже там,
+    // після того як вона натисне «Приєднатися». Це однаково стосується і організатора, і гостя.
+    function startJoin(publicId: string, password: string) {
         setJoinError(null)
-        try {
-            const result = await joinRoom(publicId, password)
-            if (result.status === 'ADMITTED') {
-                navigate(`/room/${result.meetingId}`, {
-                    state: { accessToken: result.accessToken, serverUrl: result.serverUrl, roomName: result.roomName },
-                })
-            } else {
-                navigate(`/waiting/${result.meetingId}`)
-            }
-        } catch (err) {
-            setJoinError(err instanceof ApiError ? err.message : 'Не вдалося приєднатися до заняття')
-        }
+        navigate('/prejoin', { state: { publicId, password } })
     }
 
     async function handleJoinExisting(e: FormEvent) {
@@ -195,7 +187,11 @@ export function HomePage() {
 
             {showScheduleForm && (
                 <Modal title="Запланувати заняття" onClose={() => setShowScheduleForm(false)}>
-                    <ScheduleMeetingForm onSubmit={handleCreate} onCancel={() => setShowScheduleForm(false)} />
+                    <ScheduleMeetingForm
+                        initialDate={selectedDay ?? undefined}
+                        onSubmit={handleCreate}
+                        onCancel={() => setShowScheduleForm(false)}
+                    />
                 </Modal>
             )}
 
