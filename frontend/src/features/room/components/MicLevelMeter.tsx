@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { LocalAudioTrack } from 'livekit-client'
+import { useI18n } from '@/shared/i18n/I18nContext'
 
 interface MicLevelMeterProps {
     track: LocalAudioTrack | null
@@ -9,6 +10,7 @@ interface MicLevelMeterProps {
 // (через Web Audio AnalyserNode), а не просто показує "увімкнено/вимкнено".
 // Так людина бачить, що мікрофон і справді щось чує, перш ніж заходити на заняття.
 export function MicLevelMeter({ track }: MicLevelMeterProps) {
+    const { t } = useI18n()
     const [level, setLevel] = useState(0)
     const rafRef = useRef<number>()
 
@@ -49,7 +51,7 @@ export function MicLevelMeter({ track }: MicLevelMeterProps) {
     }, [track, track?.mediaStreamTrack])
 
     return (
-        <div className="mic-level-meter" title="Рівень гучності мікрофона">
+        <div className="mic-level-meter" title={t('device.micLevelTitle')}>
             <div className="mic-level-fill" style={{ width: `${Math.round(level * 100)}%` }} />
         </div>
     )

@@ -1,3 +1,5 @@
+import { useI18n } from '@/shared/i18n/I18nContext'
+
 interface MonthCalendarProps {
     year: number
     month: number // 0–11
@@ -8,12 +10,6 @@ interface MonthCalendarProps {
     onNextMonth: () => void
 }
 
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const MONTH_NAMES = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-]
-
 function toDateKey(d: Date) {
     return d.toISOString().slice(0, 10)
 }
@@ -21,6 +17,10 @@ function toDateKey(d: Date) {
 export function MonthCalendar({
                                   year, month, occurrencesByDay, selectedDay, onSelectDay, onPrevMonth, onNextMonth,
                               }: MonthCalendarProps) {
+    const { tList } = useI18n()
+    const weekdays = tList('calendar.weekdays')
+    const monthNames = tList('calendar.months')
+
     const firstOfMonth = new Date(Date.UTC(year, month, 1))
     const startWeekday = (firstOfMonth.getUTCDay() + 6) % 7 // понеділок = 0
     const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
@@ -34,12 +34,12 @@ export function MonthCalendar({
     return (
         <div className="calendar">
             <div className="calendar-header">
-                <button type="button" className="icon-button" onClick={onPrevMonth}>←</button>
-                <strong>{MONTH_NAMES[month]} {year}</strong>
-                <button type="button" className="icon-button" onClick={onNextMonth}>→</button>
+                <button type="button" className="icon-button calendar-nav" onClick={onPrevMonth}>←</button>
+                <strong>{monthNames[month]} {year}</strong>
+                <button type="button" className="icon-button calendar-nav" onClick={onNextMonth}>→</button>
             </div>
             <div className="calendar-grid calendar-weekdays">
-                {WEEKDAYS.map((w) => <div key={w} className="calendar-weekday">{w}</div>)}
+                {weekdays.map((w) => <div key={w} className="calendar-weekday">{w}</div>)}
             </div>
             <div className="calendar-grid">
                 {cells.map((date, i) => {

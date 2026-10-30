@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { createLocalAudioTrack, createLocalVideoTrack, LocalAudioTrack, LocalVideoTrack } from 'livekit-client'
 import { ApiError } from '@/shared/api/http'
+import { useI18n } from '@/shared/i18n/I18nContext'
 import { getRoomStatus, leaveWaitingRoom, RoomStatus } from '../api/roomApi'
 import { DeviceSelect } from '../components/DeviceSelect'
 import { MicLevelMeter } from '../components/MicLevelMeter'
@@ -12,6 +13,7 @@ interface WaitingLocationState {
 }
 
 export function WaitingRoomPage() {
+    const { t } = useI18n()
     const { meetingId } = useParams<{ meetingId: string }>()
     const navigate = useNavigate()
     const location = useLocation()
@@ -44,9 +46,8 @@ export function WaitingRoomPage() {
                     if (cancelled) { track.stop(); return }
                     setVideoTrack(track)
                     setCamOn(true)
-                    if (videoRef.current) track.attach(videoRef.current)
                 } catch {
-                    setError('Не вдалося отримати доступ до камери')
+                    setError(t('device.cameraError'))
                 }
             }
             if (initial.micOn) {
@@ -56,7 +57,7 @@ export function WaitingRoomPage() {
                     setAudioTrack(track)
                     setMicOn(true)
                 } catch {
-                    setError('Не вдалося отримати доступ до мікрофона')
+                    setError(t('device.micError'))
                 }
             }
         }
@@ -73,6 +74,19 @@ export function WaitingRoomPage() {
         }
     }, [videoTrack, audioTrack])
 
+    // Той самий фікс, що й у PreJoinLobby: attach() викликаний одразу після setCamOn(true)
+    // влучав у момент, коли <video> ще не змонтовано (попередній рендер мав camera-off-note),
+    // тож videoRef.current був null і трек лишався ніде не прикріпленим. Ефект спрацьовує
+    // вже після монтування <video>.
+    useEffect(() => {
+        if (videoTrack && videoRef.current) {
+            videoTrack.attach(videoRef.current)
+        }
+        return () => {
+            videoTrack?.detach()
+        }
+    }, [videoTrack])
+
     async function toggleCam() {
         if (camOn) {
             videoTrack?.stop()
@@ -84,9 +98,8 @@ export function WaitingRoomPage() {
             const track = await createLocalVideoTrack(camDeviceId ? { deviceId: camDeviceId } : undefined)
             setVideoTrack(track)
             setCamOn(true)
-            if (videoRef.current) track.attach(videoRef.current)
         } catch {
-            setError('Не вдалося отримати доступ до камери')
+            setError(t('device.cameraError'))
         }
     }
 
@@ -102,7 +115,7 @@ export function WaitingRoomPage() {
             setAudioTrack(track)
             setMicOn(true)
         } catch {
-            setError('Не вдалося отримати доступ до мікрофона')
+            setError(t('device.micError'))
         }
     }
 
@@ -156,11 +169,11 @@ export function WaitingRoomPage() {
                         },
                     })
                 } else if (result.status === 'DENIED') {
-                    setError('Організатор відхилив запит на приєднання')
+                    setError(t('waitingRoom.deniedError'))
                 }
             } catch (err) {
                 if (!leavingRef.current) {
-                    setError(err instanceof ApiError ? err.message : 'Не вдалося перевірити статус заняття')
+                    setError(err instanceof ApiError ? err.message : t('waitingRoom.statusError'))
                 }
             }
         }
@@ -171,34 +184,34 @@ export function WaitingRoomPage() {
     }, [meetingId, navigate, videoTrack, audioTrack, camOn, micOn])
 
     return (
-        <main className="page">
-            <h1>Кімната очікування</h1>
+        <main className="page-media">
+            <h1>{t('waitingRoom.title')}</h1>
             {error && <p className="error">{error}</p>}
             <div className="preview-box">
                 {camOn
                     ? <video ref={videoRef} autoPlay muted playsInline className="preview-video" />
-                    : <div className="camera-off-note">Камера вимкнена</div>}
+                    : <div className="camera-off-note">{t('device.cameraOff')}</div>}
             </div>
 
             <div className="device-row">
-                <button type="button" onClick={toggleCam}>{camOn ? 'Вимкнути камеру' : 'Увімкнути камеру'}</button>
+                <button type="button" onClick={toggleCam}>{camOn ? t('device.cameraTurnOff') : t('device.cameraOn')}</button>
                 <DeviceSelect kind="videoinput" value={camDeviceId} onChange={handleCamDeviceChange} />
             </div>
             <div className="device-row">
-                <button type="button" onClick={toggleMic}>{micOn ? 'Вимкнути мікрофон' : 'Увімкнути мікрофон'}</button>
+                <button type="button" onClick={toggleMic}>{micOn ? t('device.micTurnOff') : t('device.micOn')}</button>
                 <DeviceSelect kind="audioinput" value={micDeviceId} onChange={handleMicDeviceChange} />
             </div>
             {micOn && <MicLevelMeter track={audioTrack} />}
-            {micOn && <p className="hint">Скажіть щось — смужка вище має рухатись, якщо мікрофон працює.</p>}
+            {micOn && <p className="hint">{t('device.micHint')}</p>}
 
             <p className="hint">
-                {status?.roomName && <>Заняття: <strong>{status.roomName}</strong><br /></>}
-                Очікуємо, поки організатор допустить вас до заняття…
+                {status?.roomName && <>{t('waitingRoom.meetingLabel')} <strong>{status.roomName}</strong><br /></>}
+                {t('waitingRoom.statusHint')}
             </p>
 
             <div className="form-actions">
                 <button type="button" className="btn-secondary" onClick={handleCancel} disabled={leaving}>
-                    {leaving ? 'Виходимо…' : 'Скасувати приєднання'}
+                    {leaving ? t('waitingRoom.leaving') : t('waitingRoom.cancel')}
                 </button>
             </div>
         </main>

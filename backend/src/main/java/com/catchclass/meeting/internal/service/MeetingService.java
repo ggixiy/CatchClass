@@ -50,6 +50,12 @@ public class MeetingService implements MeetingApi {
     }
 
     @Override
+    @Transactional
+    public void setWaitingRoomEnabled(UUID id, boolean enabled) {
+        repository.findById(id).ifPresent(m -> m.changeWaitingRoom(enabled));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Optional<MeetingAccess> checkAccess(String publicId, String password) {
         return repository.findByPublicId(publicId)
@@ -206,7 +212,7 @@ public class MeetingService implements MeetingApi {
 
     private MeetingAccess toAccess(Meeting meeting) {
         return new MeetingAccess(meeting.getId(), meeting.getPublicId(), meeting.getTitle(), meeting.getHostUserId(),
-                meeting.isWaitingRoomEnabled());
+                meeting.isWaitingRoomEnabled(), meeting.getPassword());
     }
 
     private MeetingResponse toResponse(Meeting meeting) {

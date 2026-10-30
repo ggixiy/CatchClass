@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { ApiError } from '@/shared/api/http'
+import { useI18n } from '@/shared/i18n/I18nContext'
 import { generateMeetingPassword, Meeting, MeetingFormData, RecurrenceRule } from '../api/meetingApi'
 
 interface ScheduleMeetingFormProps {
@@ -28,6 +29,7 @@ function defaultStartForDay(day: string): string {
 }
 
 export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }: ScheduleMeetingFormProps) {
+    const { t } = useI18n()
     const [title, setTitle] = useState(initial?.title ?? '')
     const [description, setDescription] = useState(initial?.description ?? '')
     const [startLocal, setStartLocal] = useState(
@@ -65,7 +67,7 @@ export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }
                 waitingRoomEnabled,
             })
         } catch (err) {
-            setError(err instanceof ApiError ? err.message : 'Не вдалося зберегти заняття')
+            setError(err instanceof ApiError ? err.message : t('schedule.error'))
         } finally {
             setSubmitting(false)
         }
@@ -74,34 +76,39 @@ export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }
     return (
         <form onSubmit={handleSubmit} className="stacked-form">
             {error && <p className="error">{error}</p>}
-            <input placeholder="Назва заняття" value={title} onChange={(e) => setTitle(e.target.value)} required />
-            <textarea
-                placeholder="Опис (необовʼязково)"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-            />
+            <label className="field-full">
+                {t('schedule.titlePlaceholder')}
+                <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+            </label>
+            <label className="field-full">
+                {t('schedule.descriptionPlaceholder')}
+                <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                />
+            </label>
             <label>
-                Початок
+                {t('schedule.start')}
                 <input type="datetime-local" value={startLocal} onChange={(e) => setStartLocal(e.target.value)} required />
             </label>
             <label>
-                Тривалість (хв)
+                {t('schedule.duration')}
                 <input
                     type="number" min={5} max={480} value={durationMinutes}
                     onChange={(e) => setDurationMinutes(Number(e.target.value))} required
                 />
             </label>
             <label>
-                Повторення
+                {t('schedule.recurrence')}
                 <select value={recurrence} onChange={(e) => setRecurrence(e.target.value as RecurrenceRule)}>
-                    <option value="NONE">Не повторюється</option>
-                    <option value="WEEKLY">Щотижня</option>
-                    <option value="MONTHLY">Щомісяця</option>
+                    <option value="NONE">{t('schedule.recurrenceNone')}</option>
+                    <option value="WEEKLY">{t('schedule.recurrenceWeekly')}</option>
+                    <option value="MONTHLY">{t('schedule.recurrenceMonthly')}</option>
                 </select>
             </label>
             {recurrence !== 'NONE' && (
-                <label>
-                    Повторювати до
+                <label className="reveal-field">
+                    {t('schedule.recurrenceUntil')}
                     <input type="datetime-local" value={endsLocal} onChange={(e) => setEndsLocal(e.target.value)} />
                 </label>
             )}
@@ -112,14 +119,14 @@ export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }
                     checked={requirePassword}
                     onChange={(e) => handleTogglePassword(e.target.checked)}
                 />
-                Вимагати пароль для входу
+                {t('schedule.requirePassword')}
             </label>
             {requirePassword && (
-                <label>
-                    Пароль
+                <label className="field-full reveal-field">
+                    {t('common.password')}
                     <div className="password-row">
                         <input value={password} onChange={(e) => setPassword(e.target.value)} maxLength={20} required />
-                        <button type="button" onClick={() => setPassword(generateMeetingPassword())}>Згенерувати</button>
+                        <button type="button" onClick={() => setPassword(generateMeetingPassword())}>{t('common.generate')}</button>
                     </div>
                 </label>
             )}
@@ -130,15 +137,15 @@ export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }
                     checked={waitingRoomEnabled}
                     onChange={(e) => setWaitingRoomEnabled(e.target.checked)}
                 />
-                Увімкнути кімнату очікування
+                {t('schedule.waitingRoom')}
             </label>
             {!waitingRoomEnabled && (
-                <p className="hint">Учасники приєднуватимуться одразу, без допуску організатором.</p>
+                <p className="hint">{t('schedule.waitingRoomHint')}</p>
             )}
 
             <div className="form-actions">
-                <button type="submit" className="btn-primary" disabled={submitting}>Зберегти</button>
-                <button type="button" onClick={onCancel}>Скасувати</button>
+                <button type="submit" className="btn-primary" disabled={submitting}>{t('common.save')}</button>
+                <button type="button" onClick={onCancel}>{t('common.cancel')}</button>
             </div>
         </form>
     )

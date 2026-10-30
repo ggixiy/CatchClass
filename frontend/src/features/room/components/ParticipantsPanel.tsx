@@ -1,71 +1,74 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { Participant } from 'livekit-client'
 import { useLocalParticipant, useParticipants } from '@livekit/components-react'
-import {
-    admitGuest, denyGuest, kickParticipant, listWaitingGuests, muteAll, WaitingGuest,
-} from '../api/roomApi'
+import { useI18n } from '@/shared/i18n/I18nContext'
+import { CameraIcon, CameraOffIcon, HandIcon, MicIcon, MicOffIcon } from '@/shared/ui/icons'
+import { kickParticipant, muteAll, unmuteAll } from '../api/roomApi'
+import { sortByRaisedHand, useHandRaisedAt } from '../hooks/useHandRaisedAt'
+import type { HostRequests } from '../hooks/useHostRequests'
 
 interface ParticipantsPanelProps {
     meetingId: string
     isHost: boolean
+    requests: HostRequests
     open: boolean
     onClose: () => void
 }
 
-// Єдина панель (рис. 4.7 ТЗ "Панель списку учасників"): зверху — хто вже в кімнаті
-// (живий список з LiveKit через useParticipants) з кнопкою «Kick» для організатора,
-// знизу — у організатора — черга кімнати очікування з кнопками «Let in» / «Reject».
-// Відкривається окремою кнопкою в кімнаті, а не спливає сама по собі.
-export function ParticipantsPanel({ meetingId, isHost, open, onClose }: ParticipantsPanelProps) {
+interface ParticipantRowProps {
+    participant: Participant
+    isSelf: boolean
+    isHost: boolean
+    handRaised: boolean
+    busy: boolean
+    onKick: (identity: string) => void
+}
+
+function ParticipantRow({ participant: p, isSelf, isHost, handRaised, busy, onKick }: ParticipantRowProps) {
+    const { t } = useI18n()
+    return (
+        <li className={`participants-item ${handRaised ? 'hand-raised' : ''}`}>
+            <span className="participants-name">
+                {handRaised && <HandIcon className="hand-icon" size={15} />}
+                {p.name || p.identity}{isSelf && ` ${t('room.you')}`}
+            </span>
+            <span className="participant-status">
+                {p.isMicrophoneEnabled ? <MicIcon /> : <MicOffIcon className="status-icon-off" />}
+                {p.isCameraEnabled ? <CameraIcon /> : <CameraOffIcon className="status-icon-off" />}
+                {isHost && !isSelf && (
+                    <button type="button" className="kick-button" disabled={busy} onClick={() => onKick(p.identity)}>
+                        {t('room.kick')}
+                    </button>
+                )}
+            </span>
+        </li>
+    )
+}
+
+// Бокова панель «Учасники» (рис. 4.7 ТЗ): хто в кімнаті (піднята рука — першими, у порядку
+// підняття), для організатора — «Заглушити всіх / Розмутити всіх», кімната очікування та
+// запити на показ екрана. «Завершити конференцію для всіх» тут більше немає — вона живе в
+// меню кнопки виходу. Саме опитування запитів робить useHostRequests, один раз на кімнату.
+export function ParticipantsPanel({ meetingId, isHost, requests, open, onClose }: ParticipantsPanelProps) {
+    const { t } = useI18n()
     const participants = useParticipants()
     const { localParticipant } = useLocalParticipant()
-    const [waiting, setWaiting] = useState<WaitingGuest[]>([])
-    const [busyUserId, setBusyUserId] = useState<string | null>(null)
+    const handRaisedAt = useHandRaisedAt()
+    const [kickingId, setKickingId] = useState<string | null>(null)
     const [mutingAll, setMutingAll] = useState(false)
+    const [unmutingAll, setUnmutingAll] = useState(false)
 
-    useEffect(() => {
-        if (!isHost) return
-        let active = true
-
-        async function poll() {
-            try {
-                const result = await listWaitingGuests(meetingId)
-                if (active) setWaiting(result)
-            } catch {
-                // Тимчасова помилка опитування не критична — просто пробуємо знову за 3с.
-            }
-        }
-
-        poll()
-        const interval = setInterval(poll, 3000)
-        return () => { active = false; clearInterval(interval) }
-    }, [meetingId, isHost])
-
-    async function handleAdmit(userId: string) {
-        setBusyUserId(userId)
-        try {
-            await admitGuest(meetingId, userId)
-            setWaiting((prev) => prev.filter((g) => g.userId !== userId))
-        } finally {
-            setBusyUserId(null)
-        }
-    }
-
-    async function handleDeny(userId: string) {
-        setBusyUserId(userId)
-        try {
-            await denyGuest(meetingId, userId)
-            setWaiting((prev) => prev.filter((g) => g.userId !== userId))
-        } finally {
-            setBusyUserId(null)
-        }
-    }
+    const ordered = useMemo(
+        () => sortByRaisedHand(participants, (p) => p.identity, handRaisedAt),
+        [participants, handRaisedAt],
+    )
 
     async function handleKick(identity: string) {
-        setBusyUserId(identity)
+        setKickingId(identity)
         try {
             await kickParticipant(meetingId, identity)
         } finally {
-            setBusyUserId(null)
+            setKickingId(null)
         }
     }
 
@@ -78,79 +81,105 @@ export function ParticipantsPanel({ meetingId, isHost, open, onClose }: Particip
         }
     }
 
+    async function handleUnmuteAll() {
+        setUnmutingAll(true)
+        try {
+            await unmuteAll(meetingId)
+        } finally {
+            setUnmutingAll(false)
+        }
+    }
+
     if (!open) return null
+
+    const { waiting, screenShare, busyUserId, admit, deny, allowScreen, declineScreen } = requests
 
     return (
         <aside className="participants-panel">
             <div className="participants-panel-header">
-                <h3>Учасники</h3>
-                <button type="button" className="icon-button" onClick={onClose} title="Закрити">×</button>
+                <h3>{t('room.title')}</h3>
+                <button type="button" className="icon-button" onClick={onClose} title={t('common.close')}>×</button>
             </div>
 
-            <div className="participants-section">
-                <div className="participants-section-header">
-                    <h4>У кімнаті ({participants.length})</h4>
-                    {isHost && (
-                        <button type="button" disabled={mutingAll} onClick={handleMuteAll}>
-                            Mute all
-                        </button>
-                    )}
-                </div>
-                <ul className="participants-list">
-                    {participants.map((p) => {
-                        const isSelf = p.identity === localParticipant.identity
-                        return (
-                            <li key={p.identity} className="participants-item">
-                                <span>{p.name || p.identity}{isSelf && ' (ви)'}</span>
-                                <span className="participant-status">
-                                    {p.isMicrophoneEnabled ? '🎤' : '🔇'} {p.isCameraEnabled ? '📹' : '📷'}
-                                    {isHost && !isSelf && (
-                                        <button
-                                            type="button"
-                                            className="kick-button"
-                                            disabled={busyUserId === p.identity}
-                                            onClick={() => handleKick(p.identity)}
-                                        >
-                                            Kick
-                                        </button>
-                                    )}
-                                </span>
-                            </li>
-                        )
-                    })}
-                </ul>
-            </div>
+            <div className="side-panel-body">
+                {isHost && (waiting.length > 0 || screenShare.length > 0) && (
+                    <div className="participants-section">
+                        {waiting.length > 0 && (
+                            <>
+                                <h4>{t('room.waitingRoomSection', { count: waiting.length })}</h4>
+                                <ul className="participants-list">
+                                    {waiting.map((guest) => (
+                                        <li key={guest.userId} className="participants-item">
+                                            <span>{guest.displayName}</span>
+                                            <div className="form-actions">
+                                                <button type="button" className="btn-primary" disabled={busyUserId === guest.userId} onClick={() => admit(guest.userId)}>
+                                                    {t('room.letIn')}
+                                                </button>
+                                                <button type="button" disabled={busyUserId === guest.userId} onClick={() => deny(guest.userId)}>
+                                                    {t('room.reject')}
+                                                </button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+                        {screenShare.length > 0 && (
+                            <>
+                                <h4 className="participants-subheading">{t('room.screenShareRequests', { count: screenShare.length })}</h4>
+                                <ul className="participants-list">
+                                    {screenShare.map((req) => (
+                                        <li key={req.userId} className="participants-item">
+                                            <span>{req.displayName}</span>
+                                            <div className="form-actions">
+                                                <button type="button" className="btn-primary" disabled={busyUserId === req.userId} onClick={() => allowScreen(req.userId)}>
+                                                    {t('room.allow')}
+                                                </button>
+                                                <button type="button" disabled={busyUserId === req.userId} onClick={() => declineScreen(req.userId)}>
+                                                    {t('room.decline')}
+                                                </button>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+                    </div>
+                )}
 
-            {isHost && (
                 <div className="participants-section">
-                    <h4>Кімната очікування ({waiting.length})</h4>
-                    {waiting.length === 0 && <p className="hint">Немає нових запитів.</p>}
+                    <div className="participants-section-header">
+                        <h4>{t('room.inRoom', { count: participants.length })}</h4>
+                        {isHost && (
+                            <div className="form-actions">
+                                <button type="button" disabled={mutingAll} onClick={handleMuteAll}>
+                                    {t('room.muteAll')}
+                                </button>
+                                <button type="button" disabled={unmutingAll} onClick={handleUnmuteAll}>
+                                    {t('room.unmuteAll')}
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <ul className="participants-list">
-                        {waiting.map((guest) => (
-                            <li key={guest.userId} className="participants-item">
-                                <span>{guest.displayName}</span>
-                                <div className="form-actions">
-                                    <button
-                                        type="button"
-                                        className="btn-primary"
-                                        disabled={busyUserId === guest.userId}
-                                        onClick={() => handleAdmit(guest.userId)}
-                                    >
-                                        Let in
-                                    </button>
-                                    <button
-                                        type="button"
-                                        disabled={busyUserId === guest.userId}
-                                        onClick={() => handleDeny(guest.userId)}
-                                    >
-                                        Reject
-                                    </button>
-                                </div>
-                            </li>
+                        {ordered.map((p) => (
+                            <ParticipantRow
+                                key={p.identity}
+                                participant={p}
+                                isSelf={p.identity === localParticipant.identity}
+                                isHost={isHost}
+                                handRaised={handRaisedAt[p.identity] !== undefined}
+                                busy={kickingId === p.identity}
+                                onKick={handleKick}
+                            />
                         ))}
                     </ul>
                 </div>
-            )}
+
+                {isHost && waiting.length === 0 && screenShare.length === 0 && (
+                    <p className="hint">{t('room.noRequests')}</p>
+                )}
+            </div>
         </aside>
     )
 }

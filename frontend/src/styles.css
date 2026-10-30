@@ -1,139 +1,669 @@
-:root {--bg: #ffffff;--text: #1a1f27;--muted: #5b6573;--border: #d9dee5;font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;color: var(--text);background: var(--bg);}
+/* =========================================================================
+   CatchClass — design tokens
+   Один пастельний акцент — Baby Pink — замість двох конкуруючих кольорів.
+   Світла/темна основа майже монохромна, рожевий зʼявляється точково:
+   виділення, фокус, статуси, і (у темній темі) більшість кнопок.
+   Manrope для заголовків/кнопок, Inter для основного тексту.
+   ========================================================================= */
+
+:root {
+  --font-display: 'Manrope', system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+
+  /* світла тема */
+  --bg: #faf9fc;
+  --surface: #ffffff;
+  --surface-2: #f3f1f8;
+  --surface-3: #eae7f1;
+  --text: #16141c;
+  --muted: #6f6b7a;
+  --border: #e7e4ef;
+
+  /* baby pink — єдиний акцент. --pink-strong трохи яскравіша/насиченіша
+     версія того самого відтінку (для контурів), а не інший колір. */
+  --pink: #f4aecb;
+  --pink-strong: #e0699f;
+  --pink-soft: #fdf1f6;
+
+  /* --accent лишається як псевдонім, щоб усе, що історично посилається на
+     нього, теж виглядало рожевим — єдине джерело правди все одно --pink*. */
+  --accent: var(--pink);
+  --accent-strong: var(--pink-strong);
+  --accent-soft: var(--pink-soft);
+
+  --ink: #16141c;
+  --ink-contrast: #ffffff;
+
+  --danger: #d23a4e;
+  --danger-soft: #fbe4e8;
+  --success: #1f9d63;
+  --success-soft: #e3f7ec;
+
+  --shadow-sm: 0 1px 3px rgba(20, 15, 30, 0.07), 0 1px 2px rgba(20, 15, 30, 0.05);
+  --shadow-md: 0 10px 26px rgba(20, 15, 30, 0.09);
+  --shadow-lg: 0 24px 56px rgba(20, 15, 30, 0.14);
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --bg: #121016;
+  --surface: #1b1820;
+  --surface-2: #242029;
+  --surface-3: #2d2833;
+  --text: #f3f1f7;
+  --muted: #9b96a8;
+  --border: #322c39;
+
+  --pink: #ff9dc9;
+  --pink-strong: #ffb9d8;
+  --pink-soft: #3a2430;
+
+  --accent: var(--pink);
+  --accent-strong: var(--pink-strong);
+  --accent-soft: var(--pink-soft);
+
+  --ink: #f3f1f7;
+  --ink-contrast: #121016;
+
+  --danger: #ff7a89;
+  --danger-soft: #3a2228;
+  --success: #49d394;
+  --success-soft: #16332a;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 26px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #121016;
+    --surface: #1b1820;
+    --surface-2: #242029;
+    --surface-3: #2d2833;
+    --text: #f3f1f7;
+    --muted: #9b96a8;
+    --border: #322c39;
+
+    --pink: #ff9dc9;
+    --pink-strong: #ffb9d8;
+    --pink-soft: #3a2430;
+
+    --accent: var(--pink);
+    --accent-strong: var(--pink-strong);
+    --accent-soft: var(--pink-soft);
+
+    --ink: #f3f1f7;
+    --ink-contrast: #121016;
+
+    --danger: #ff7a89;
+    --danger-soft: #3a2228;
+    --success: #49d394;
+    --success-soft: #16332a;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 26px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+}
 
 * { box-sizing: border-box; }
-body { margin: 0; }
 
-.page { max-width: 32rem; margin: 3rem auto; padding: 0 1rem; }
-.page-wide { max-width: 50rem; margin: 3rem auto; padding: 0 1rem; }
-.hint { color: var(--muted); }
-.error { color: #c0392b; }
-
-form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-input { padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 4px; flex: 1; min-width: 8rem; }
-
-button { padding: 0.4rem 1rem; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text); cursor: pointer; }
-button:hover { background: #f3f4f6; }
-
-.btn-primary { background: #1168bd; color: #fff; border-color: #1168bd; font-weight: 600; }
-.btn-primary:hover { background: #0d5499; }
-.btn-secondary { background: transparent; color: var(--text); border-color: #c33; }
-.btn-secondary:hover { background: #fdecec; }
-.btn-block { width: 100%; margin-bottom: 1rem; }
-
-.icon-button {border: none; background: transparent; color: var(--text); font-size: 1.25rem; line-height: 1; padding: 0.25rem 0.6rem;}
-.icon-button:hover { background: #f3f4f6; border-radius: 4px; }
-
-.avatar-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-.avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; background: #e5e7eb; }
-.avatar-placeholder { display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #555; }
-
-.home-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem; }
-.home-columns { display: grid; grid-template-columns: 1.3fr 1fr; gap: 2rem; align-items: start; }
-@media (max-width: 40rem) { .home-columns { grid-template-columns: 1fr; } }
-.home-column { min-width: 0; }
-
-.calendar-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-.calendar { margin-bottom: 1.5rem; }
-.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.calendar-weekday { text-align: center; font-size: 0.8rem; color: var(--muted); padding: 4px; }
-.calendar-cell {
-  aspect-ratio: 1; border: 1px solid var(--border); border-radius: 6px; background: #fff;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer; position: relative; font-size: 0.9rem; color: var(--text);
+body {
+  margin: 0;
+  background: var(--bg);
+  min-height: 100vh;
+  transition: background 200ms ease, color 200ms ease;
 }
-.calendar-cell-empty { border: none; background: transparent; cursor: default; }
-.calendar-cell-today { border-color: #1168bd; font-weight: bold; }
-.calendar-cell-selected { background: #1168bd; color: #fff; }
-.calendar-dot { width: 6px; height: 6px; border-radius: 50%; background: #e76f51; position: absolute; bottom: 4px; }
-.calendar-cell-selected .calendar-dot { background: #fff; }
 
-.join-block { padding: 1rem; border: 1px solid var(--border); border-radius: 8px; }
-.join-block input:disabled { background: #f3f4f6; cursor: not-allowed; }
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; margin: 0 0 0.5rem; }
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.15rem; }
+h3 { font-size: 1.02rem; }
+p { line-height: 1.55; }
+a { color: var(--pink-strong); font-weight: 500; }
 
-.meeting-list { list-style: none; padding: 0; }
-.meeting-list li { margin-bottom: 0.5rem; }
-.meeting-list button { width: 100%; text-align: left; background: #f8fafc; border: 1px solid var(--border); padding: 0.5rem 0.75rem; border-radius: 6px; }
+/* ---------- контейнери сторінок ---------- */
+/* flex-колонка з gap замість ручних margin — рівномірне "повітря" між
+   усіма прямими дітьми (заголовок, форма, посилання...) само собою. */
 
-.stacked-form { display: flex; flex-direction: column; gap: 0.75rem; }
-.stacked-form label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; }
-.stacked-form textarea { min-height: 4rem; font-family: inherit; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 4px; }
-.form-actions { display: flex; gap: 0.5rem; }
+.page, .page-media {
+  background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+.page > h1, .page-media > h1 { margin-bottom: 0; }
+.page {
+  max-width: 28rem; margin: 4rem auto; padding: 2.5rem 2.25rem;
+}
+.page-media {
+  max-width: 38rem; margin: 3rem auto; padding: 2.5rem 2.25rem;
+}
+.page-wide {
+  max-width: 68rem; margin: 2rem auto; padding: 0 1.25rem 2.5rem;
+}
+
+@media (min-width: 90rem) {
+  .page-wide { max-width: 84rem; }
+}
+
+@media (max-width: 40rem) {
+  .page-media { margin: 1.5rem auto; padding: 1.75rem 1.25rem; border-radius: var(--radius-md); }
+}
+
+.hint { color: var(--muted); font-size: 0.88rem; }
+.error { color: var(--danger); background: var(--danger-soft); border-radius: var(--radius-sm); padding: 0.55rem 0.8rem; font-size: 0.9rem; }
+
+/* ---------- форми / поля ---------- */
+
+form { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+form > h2, form > h3, form > .error, form > .hint { flex-basis: 100%; margin: 0; }
+
+/* Двостовпцева сітка для довших форм (планування заняття, приєднання) —
+   поля природно розтягуються на всю ширину замість тісного однорядкового flex. */
+.stacked-form {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem 1.25rem; margin-bottom: 0;
+}
+.stacked-form > h2, .stacked-form > h3, .stacked-form > .error, .stacked-form > .hint,
+.stacked-form > .form-actions, .stacked-form > label.checkbox-row, .stacked-form > .field-full {
+  grid-column: 1 / -1;
+}
+.stacked-form label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.88rem; color: var(--muted); font-weight: 500; }
+.stacked-form textarea { min-height: 4.5rem; font-family: var(--font-body); }
+
+@media (max-width: 36rem) {
+  .stacked-form { grid-template-columns: 1fr; }
+}
+
+@keyframes revealFromLeft {
+  from { opacity: 0; transform: translateX(-14px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.reveal-field { animation: revealFromLeft 180ms ease; }
+
+input, select, textarea {
+  padding: 0.6rem 0.85rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  flex: 1; min-width: 8rem; background: var(--surface); color: var(--text);
+  font-family: var(--font-body); font-size: 0.95rem; transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+input:not([type='checkbox']):focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--pink-strong); box-shadow: 0 0 0 3px var(--pink-soft);
+}
+input::placeholder, textarea::placeholder { color: var(--muted); }
+
+/* Власний чекбокс — швидкий (без зайвих transition-затримок) і з власною
+   рамкою фокусу, що точно збігається з формою контролу. */
+input[type='checkbox'] {
+  appearance: none; -webkit-appearance: none;
+  flex: none; width: 1.2rem; height: 1.2rem; min-width: 0;
+  border: 1.5px solid var(--border); border-radius: 6px;
+  background: var(--surface); margin: 0; padding: 0; position: relative; cursor: pointer;
+  transition: background 80ms ease, border-color 80ms ease;
+}
+input[type='checkbox']:hover { border-color: var(--pink-strong); }
+input[type='checkbox']:checked { background: var(--pink); border-color: var(--pink-strong); }
+input[type='checkbox']:checked::after {
+  content: ''; position: absolute; left: 5px; top: 1px; width: 5px; height: 9px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+input[type='checkbox']:focus-visible { outline: 2px solid var(--pink-strong); outline-offset: 2px; }
+
+/* Стрілка нативного select — через градієнти (а не бек-картинку), щоб
+   колір підхоплював тему, з відступом від краю. */
+select {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 1.15rem) center, calc(100% - 0.85rem) center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2.3rem;
+  cursor: pointer;
+}
+
+button {
+  padding: 0.6rem 1.15rem; border: 1.5px solid var(--border); border-radius: var(--radius-pill);
+  background: var(--surface); color: var(--text); cursor: pointer; font-family: var(--font-display);
+  font-weight: 600; font-size: 0.9rem; transition: border-color 150ms ease, background 150ms ease, transform 120ms ease, box-shadow 150ms ease;
+}
+button:hover:not(:disabled) { border-color: var(--pink-strong); background: var(--surface-2); }
+button:active:not(:disabled) { transform: scale(0.97); }
+button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid var(--pink-strong); outline-offset: 2px; }
+
+.btn-primary {
+  background: var(--ink); color: var(--ink-contrast); border-color: var(--ink);
+}
+.btn-primary:hover:not(:disabled) { background: var(--ink); border-color: var(--pink-strong); box-shadow: 0 0 0 3px var(--pink-soft); }
+.btn-secondary { background: var(--pink-soft); color: var(--pink-strong); border-color: var(--pink-strong); }
+.btn-secondary:hover:not(:disabled) { background: var(--pink); color: #1b1420; border-color: var(--pink); }
+.btn-block { width: 100%; margin-bottom: 1rem; justify-content: center; }
+.form-actions { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+
+/* Круглі кнопки-іконки: фіксований квадратний розмір (щоб ✎ і 🗑 завжди
+   виглядали однаково) і простий перехід кольору ОСНОВИ при наведенні —
+   сама іконка кольору не міняє. */
+.icon-button {
+  border: none; color: var(--text); font-size: 1.05rem; line-height: 1;
+  width: 2.35rem; height: 2.35rem; padding: 0; border-radius: 50%; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface-2);
+  transition: background 150ms ease, transform 120ms ease;
+}
+.icon-button:hover:not(:disabled) { background: var(--pink-soft); }
+.icon-button:active:not(:disabled) { transform: scale(0.94); }
+.icon-button-danger:hover:not(:disabled) { background: var(--danger-soft); }
+.icon-button.calendar-nav { width: 2.6rem; height: 2.6rem; font-size: 1.2rem; }
+
+/* ---------- профіль / аватар ---------- */
+
+.avatar-row { display: flex; align-items: center; gap: 1.25rem; }
+.avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; background: var(--surface-3); border: 3px solid var(--pink-soft); }
+.avatar-placeholder {
+  display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--pink-strong);
+  font-family: var(--font-display); background: var(--pink-soft);
+}
+
+/* ---------- бейджі для ключової інформації (Meeting ID, пароль тощо) ---------- */
+
+.info-label { color: var(--muted); font-size: 0.85rem; margin-right: 0.3rem; }
+.info-chip {
+  display: inline-flex; align-items: center; background: var(--pink-soft); color: var(--pink-strong);
+  border-radius: var(--radius-sm); padding: 0.3rem 0.6rem; font-family: var(--font-mono);
+  font-size: 0.88rem; font-weight: 600; letter-spacing: 0.02em;
+}
+
+/* ---------- головна / дашборд ---------- */
+
+.home-header {
+  display: flex; justify-content: space-between; align-items: center; margin: 1.75rem 0 1.5rem; gap: 1rem; flex-wrap: wrap;
+}
+.home-header h1 { margin: 0; }
+.home-header a {
+  display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1.1rem; border-radius: var(--radius-pill);
+  background: var(--surface); box-shadow: var(--shadow-sm); border: 1.5px solid var(--border); text-decoration: none;
+  font-family: var(--font-display); font-weight: 600; font-size: 0.9rem; color: var(--text);
+}
+.home-header a:hover { border-color: var(--pink-strong); }
+
+.home-columns { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.75rem; align-items: start; }
+.home-column { min-width: 0; display: flex; flex-direction: column; gap: 1.25rem; }
+
+.card {
+  background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border); padding: 1.5rem;
+}
+button.btn-primary.card-cta {
+  padding: 1.05rem 1.5rem; font-size: 1rem;
+  background: var(--pink-soft); color: var(--pink-strong); border-color: var(--pink-strong);
+}
+button.btn-primary.card-cta:hover:not(:disabled) { background: var(--pink); color: #1b1420; border-color: var(--pink); box-shadow: none; }
+
+@media (max-width: 48rem) {
+  .home-columns { grid-template-columns: 1fr; }
+  .page { margin: 1.5rem auto; padding: 1.75rem 1.25rem; border-radius: var(--radius-md); }
+  .page-wide { margin: 1rem auto; }
+}
+
+.calendar-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem; }
+.calendar-title-row h2, .calendar-title-row h3 { margin: 0; }
+
+.calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-family: var(--font-display); font-size: 0.92rem; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.calendar-weekday { text-align: center; font-size: 0.68rem; color: var(--muted); padding: 2px; font-weight: 600; }
+.calendar-cell {
+  aspect-ratio: 1; border: none; border-radius: var(--radius-sm); background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; position: relative; font-size: 0.8rem; color: var(--text);
+}
+.calendar-cell:hover { box-shadow: inset 0 0 0 1.5px var(--pink-strong); }
+.calendar-cell-empty { background: transparent; cursor: default; }
+.calendar-cell-empty:hover { box-shadow: none; }
+.calendar-cell-today { box-shadow: inset 0 0 0 2px var(--pink-strong); font-weight: 700; }
+.calendar-cell-selected {
+  background: var(--pink-soft); color: var(--pink-strong); box-shadow: inset 0 0 0 1.5px var(--pink-strong); font-weight: 700;
+}
+.calendar-cell-selected:hover {
+  background: var(--pink); color: #1b1420; box-shadow: inset 0 0 0 1.5px var(--pink);
+}
+/* Той самий день одночасно і "сьогодні", і обраний — товстіша рамка поверх заповнення,
+   щоб це читалось як два статуси разом, а не губилось в одному з них. */
+.calendar-cell-selected.calendar-cell-today {
+  box-shadow: inset 0 0 0 2px var(--pink-strong);
+}
+.calendar-cell-selected.calendar-cell-today:hover {
+  box-shadow: inset 0 0 0 2px var(--pink);
+}
+.calendar-dot { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--pink-strong); }
+.calendar-cell-selected .calendar-dot { background: var(--pink-strong); }
+.calendar-cell-selected:hover .calendar-dot { background: #1b1420; }
+
+.join-block { padding: 0; border: none; }
+.join-block input:disabled { background: var(--surface-2); cursor: not-allowed; }
+
+.meeting-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; max-height: 19rem; overflow-y: auto; }
+.meeting-list-item {
+  display: flex; align-items: center; gap: 0.5rem; background: var(--surface-2); border-radius: var(--radius-sm);
+}
+.meeting-list-item button.meeting-list-open {
+  flex: 1; min-width: 0; text-align: left; background: none; border: none; border-radius: var(--radius-sm);
+  padding: 0.6rem 0.2rem 0.6rem 0.9rem; font-weight: 500; color: var(--text); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.meeting-list-item button.meeting-list-open:hover { box-shadow: none; background: none; }
+.meeting-list-item:hover { box-shadow: inset 0 0 0 1.5px var(--pink-strong); }
+.meeting-list-actions { display: flex; gap: 0.4rem; padding-right: 0.5rem; flex: none; }
+.meeting-list-actions .icon-button { width: 2rem; height: 2rem; font-size: 0.92rem; }
+
+/* ---------- модальні вікна ---------- */
 
 .modal-backdrop {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center; z-index: 50;
+  position: fixed; inset: 0; background: rgba(20, 15, 25, 0.45); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem;
 }
-.modal { background: #fff; border-radius: 8px; padding: 1.5rem; width: min(30rem, 90vw); max-height: 85vh; overflow-y: auto; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.modal {
+  background: var(--surface); border-radius: var(--radius-lg); padding: 2.25rem; width: min(36rem, 100%);
+  max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+}
+.modal-wide { width: min(54rem, 100%); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.75rem; }
+.modal-header h2 { margin: 0; }
 
-.checkbox-row { display: flex; align-items: center; gap: 0.5rem; flex-direction: row; }
-.password-row { display: flex; gap: 0.5rem; }
+.checkbox-row {
+  display: flex; align-items: center; gap: 0.65rem; flex-direction: row; font-size: 0.9rem;
+  padding: 0.55rem 0.7rem; margin: 0 -0.7rem; border-radius: var(--radius-sm); cursor: pointer;
+  transition: background 100ms ease;
+}
+.checkbox-row:hover { background: var(--surface-2); }
+.password-row { display: flex; gap: 0.6rem; }
 
-.preview-box { width: 100%; max-width: 28rem; aspect-ratio: 4 / 3; background: #1a1f27; border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
+/* ---------- прев'ю камери / кімната очікування ---------- */
+
+.preview-box {
+  width: 100%; max-width: 32rem; aspect-ratio: 4 / 3; background: #1b1820; border-radius: var(--radius-lg);
+  overflow: hidden; margin-bottom: 1.1rem; box-shadow: var(--shadow-sm);
+}
 .preview-video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 .camera-off-note {
   width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-  color: #c6ccd6; font-size: 0.9rem;
+  color: #e7e3ec; font-size: 0.9rem;
 }
 
-/* LiveKit-тема (data-lk-theme) задає білий колір тексту на своєму кореневому елементі,
-   і без явного перевизначення він успадковується аж до наших елементів нижче —
-   звідси був білий текст на білому фоні. Явно задаємо темний колір тут. */
-.room-side-toggles {
-  position: fixed; top: 1rem; right: 1rem; z-index: 55;
-  display: flex; gap: 0.5rem;
-}
-.participants-toggle {
-  background: #fff; color: var(--text); border: 1px solid var(--border);
-  border-radius: 6px; padding: 0.5rem 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-.room-panels {
-  position: fixed; top: 4rem; right: 1rem; z-index: 60;
-  display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-end;
-}
-.participants-panel {
-  background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 8px;
-  padding: 1rem; width: 20rem; max-height: 50vh; overflow-y: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-}
-.chat-panel {
-  background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 8px;
-  padding: 1rem; width: 20rem; max-height: 50vh;
-  display: flex; flex-direction: column;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-}
-.chat-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-.chat-panel-header h3 { margin: 0; font-size: 1rem; }
-.chat-panel-header button { border: none; background: none; font-size: 1.1rem; line-height: 1; padding: 0.1rem 0.4rem; }
-.chat-panel-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; min-height: 6rem; }
-.chat-message { background: var(--bg-muted, #f3f4f6); border-radius: 8px; padding: 0.4rem 0.6rem; max-width: 90%; }
-.chat-message-own { background: #e6f0fb; align-self: flex-end; }
-.chat-message-meta { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.15rem; }
-.chat-message-text { font-size: 0.9rem; word-break: break-word; white-space: pre-wrap; }
-.chat-panel-form { display: flex; gap: 0.4rem; }
-.chat-panel-form input { flex: 1; }
-.participants-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-.participants-panel-header h3 { margin: 0; font-size: 1rem; }
-.participants-panel .icon-button { border: none; background: none; font-size: 1.1rem; line-height: 1; padding: 0.1rem 0.4rem; }
-.participants-section { margin-bottom: 1rem; }
-.participants-section h4 { margin: 0 0 0.5rem; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
-.participants-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-.participants-section-header h4 { margin: 0; }
-.participants-section-header button { padding: 0.2rem 0.6rem; font-size: 0.8rem; }
-.participants-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-.participants-item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-.participants-item .form-actions { gap: 0.4rem; }
-.participants-item button { padding: 0.25rem 0.6rem; font-size: 0.85rem; }
-.participant-status { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
-.kick-button { margin-left: 0.5rem; padding: 0.15rem 0.5rem; font-size: 0.75rem; color: #c0392b; border-color: #c0392b; }
-
-.device-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
-.device-select { padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; max-width: 14rem; }
+.device-row { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.device-select { padding: 0.4rem 2rem 0.4rem 0.6rem; border-radius: var(--radius-sm); max-width: 20rem; flex: 1 1 14rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mic-level-meter {
-  width: 100%; max-width: 28rem; height: 0.6rem; background: #e2e6eb; border-radius: 999px;
+  width: 100%; max-width: 32rem; height: 0.6rem; background: var(--surface-2); border-radius: var(--radius-pill);
   overflow: hidden; margin: 0.5rem 0;
 }
-.mic-level-fill {
-  height: 100%; background: #22c55e; border-radius: 999px; transition: width 80ms linear;
+.mic-level-fill { height: 100%; background: var(--pink); border-radius: var(--radius-pill); transition: width 80ms linear; }
+
+/* ---------- перемикачі (тема / мова) ---------- */
+
+.floating-toggles {
+  position: fixed; left: 1.25rem; bottom: 1.25rem; z-index: 70;
+  display: flex; flex-direction: column; gap: 0.6rem; align-items: flex-start;
 }
+/* У кімнаті зустрічі вся навігація зібрана в одному місці знизу (room-toggles-left/right
+   + лайвкітівський control-bar), тож дублювати її тут не потрібно. */
+body.in-room .floating-toggles { display: none; }
+.theme-toggle {
+  width: 2.75rem; height: 2.75rem; padding: 0; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+  background: var(--surface); box-shadow: var(--shadow-md); border: 1px solid var(--border);
+  transition: background 150ms ease;
+}
+.theme-toggle:hover:not(:disabled) { background: var(--pink-soft); }
+
+.language-toggle {
+  display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-md); padding: 0.2rem; gap: 0.1rem;
+}
+.language-toggle button {
+  border: none; background: none; padding: 0.3rem 0.6rem; font-size: 0.72rem; border-radius: var(--radius-pill);
+  color: var(--muted);
+}
+.language-toggle button:hover:not(:disabled) { background: var(--surface-2); }
+.language-toggle-active, .language-toggle-active:hover { background: var(--pink) !important; color: #1b1420 !important; }
+
+/* ---------- кімната зустрічі: власні панелі (не LiveKit) ---------- */
+
+.room-bottom-bar {
+  width: max-content; /* без цього fixed+left:50% стискає панель до половини екрана й кнопка виходу падає в 2-й рядок */
+  position: fixed; left: 50%; bottom: 1.1rem; transform: translateX(-50%); z-index: 55;
+  display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+  max-width: calc(100vw - 2.2rem);
+  background: var(--lk-bg2, var(--surface)); border: 1px solid var(--lk-border-color, var(--border));
+  border-radius: var(--radius-pill); box-shadow: var(--lk-box-shadow, var(--shadow-lg));
+  padding: 0.5rem 0.75rem;
+}
+.participants-toggle {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius-pill); padding: 0.55rem 1.1rem; box-shadow: var(--shadow-md); font-size: 0.85rem;
+}
+/* Бічна колонка справа: чат і «Учасники» відкриваються з правого боку на третину ширини
+   екрана й на всю висоту. Якщо відкриті обидві — ділять колонку навпіл по висоті. */
+.has-sidebar { --sidebar-w: max(33.333vw, 20rem); }
+.room-sidebar {
+  position: fixed; top: 0; right: 0; bottom: 0; width: var(--sidebar-w); z-index: 65;
+  display: flex; flex-direction: column;
+  background: var(--surface); color: var(--text); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  animation: sidebar-in 180ms ease-out;
+}
+@keyframes sidebar-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .room-sidebar { animation: none; } }
+.participants-panel, .chat-panel {
+  flex: 1 1 0; min-height: 0; display: flex; flex-direction: column;
+  padding: 1rem 1.1rem; background: var(--surface); color: var(--text);
+}
+.room-sidebar > * + * { border-top: 1px solid var(--border); }
+.side-panel-body { flex: 1; min-height: 0; overflow-y: auto; }
+.participants-subheading { margin-top: 0.9rem !important; }
+
+/* ---------- верхня панель: назва, «Учасники», рука — ліворуч; мова/тема — праворуч ---------- */
+.room-topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 56;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 0.7rem 1rem; pointer-events: none;
+}
+.room-topbar > * { pointer-events: auto; }
+.room-topbar-left, .room-topbar-right { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.room-title {
+  margin: 0; font-size: 1.05rem; font-weight: 600; max-width: min(28ch, 30vw);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--lk-fg, var(--text));
+}
+.room-topbar-button { position: relative; display: inline-flex; align-items: center; gap: 0.45rem; }
+.participants-toggle.is-active { border-color: var(--pink-strong); background: var(--pink-soft); }
+/* Кружечок із кількістю запитів над кнопкою «Учасники» (для організатора). */
+.request-badge {
+  position: absolute; top: -0.45rem; right: -0.35rem; min-width: 1.35rem; height: 1.35rem; padding: 0 0.3rem;
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  border-radius: var(--radius-pill); background: var(--pink); color: #1b1420;
+  font-size: 0.72rem; font-weight: 700; line-height: 1; border: 2px solid var(--lk-bg, var(--bg));
+}
+
+/* Сторінка зі згорнутими бічними панелями займає весь екран; з відкритими — решту після колонки. */
+.has-sidebar .lk-video-conference { padding-right: var(--sidebar-w); box-sizing: border-box; }
+.has-sidebar .room-bottom-bar { left: calc((100vw - var(--sidebar-w)) / 2); max-width: calc(100vw - var(--sidebar-w) - 1.5rem); }
+.has-sidebar .room-topbar { right: var(--sidebar-w); }
+.has-sidebar .request-overlay { left: calc((100vw - var(--sidebar-w)) / 2); }
+
+/* ---------- нижня панель: кнопки LiveKit-стилю, чат і вихід ---------- */
+.room-bottom-bar .lk-button svg { flex: none; }
+.room-bar-active { background-color: var(--pink-soft) !important; box-shadow: inset 0 0 0 1.5px var(--pink-strong); }
+.room-mic-locked { opacity: 0.6; cursor: not-allowed; }
+.leave-wrap { position: relative; display: inline-flex; }
+.leave-menu {
+  position: absolute; bottom: calc(100% + 0.7rem); right: 0; min-width: 17rem; z-index: 5;
+  display: flex; flex-direction: column; gap: 0.35rem; padding: 0.45rem;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+}
+.leave-menu button {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; text-align: left;
+  width: 100%; padding: 0.6rem 0.8rem; border-radius: var(--radius-md);
+}
+.leave-menu button small { color: var(--muted); font-size: 0.74rem; }
+.leave-menu .leave-menu-danger strong { color: var(--danger); }
+
+/* ---------- оверлей «конференцію завершено / вас вилучено» ---------- */
+.room-ended-backdrop {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem;
+  background: rgba(14, 10, 20, 0.62); backdrop-filter: blur(6px);
+}
+.room-ended-card {
+  display: flex; flex-direction: column; align-items: center; gap: 0.6rem; text-align: center;
+  width: min(26rem, 100%); padding: 1.75rem 1.5rem; box-sizing: border-box;
+  background: var(--surface); color: var(--text); border: 1px solid var(--pink-strong);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+}
+.room-ended-card h2 { margin: 0; font-size: 1.2rem; }
+.room-ended-card p { margin: 0 0 0.6rem; color: var(--muted); font-size: 0.92rem; }
+.room-ended-icon {
+  display: flex; align-items: center; justify-content: center; width: 3.4rem; height: 3.4rem;
+  border-radius: 50%; background: var(--pink-soft); color: var(--pink-strong);
+}
+
+/* ---------- спливаюче вікно запитів для організатора ---------- */
+.request-overlay {
+  position: fixed; top: 4.2rem; left: 50%; transform: translateX(-50%); z-index: 70;
+  display: flex; flex-direction: column; gap: 0.6rem; width: min(30rem, calc(100vw - 1.5rem));
+}
+.request-card {
+  display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.85rem;
+  background: var(--surface); color: var(--text); border: 1px solid var(--pink-strong);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); animation: request-in 200ms ease-out;
+}
+@keyframes request-in { from { opacity: 0; transform: translateY(-0.6rem); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .request-card { animation: none; } }
+.request-card-icon { color: var(--pink-strong); display: flex; flex: none; }
+.request-card-text { flex: 1; min-width: 0; font-size: 0.9rem; overflow-wrap: anywhere; }
+.request-card-actions { display: flex; gap: 0.5rem; flex: none; }
+.request-card-actions button { padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+
+.chat-panel-header, .participants-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.65rem; }
+.chat-panel-header h3, .participants-panel-header h3 { margin: 0; font-size: 1rem; }
+.chat-panel-header .icon-button { width: 1.9rem; height: 1.9rem; font-size: 1rem; }
+.chat-panel-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.65rem; min-height: 6rem; }
+.chat-message { background: var(--surface-2); border-radius: var(--radius-md); padding: 0.5rem 0.75rem; max-width: 90%; }
+.chat-message-own { background: var(--pink-soft); align-self: flex-end; }
+.chat-message-meta { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.72rem; color: var(--muted); margin-bottom: 0.15rem; }
+.chat-message-text { font-size: 0.9rem; word-break: break-word; white-space: pre-wrap; font-family: var(--font-body); }
+.chat-panel-form { display: flex; gap: 0.5rem; }
+.chat-panel-form input { flex: 1; }
+
+.participants-panel .icon-button { width: 1.9rem; height: 1.9rem; font-size: 1rem; }
+.participants-section { margin-bottom: 1.25rem; }
+.participants-section:last-child { margin-bottom: 0; }
+.participants-section h4 { margin: 0 0 0.6rem; font-size: 0.78rem; color: var(--muted); letter-spacing: 0.02em; font-family: var(--font-display); }
+.participants-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+.participants-section-header h4 { margin: 0; }
+.participants-section-header .form-actions { gap: 0.5rem; }
+.participants-section-header button { padding: 0.3rem 0.75rem; font-size: 0.78rem; }
+.participants-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.participants-item { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.35rem 0.5rem; border-radius: var(--radius-sm); }
+.participants-item .form-actions { gap: 0.5rem; }
+.participants-item button { padding: 0.3rem 0.7rem; font-size: 0.78rem; }
+.participants-item.hand-raised { background: var(--pink-soft); }
+.participants-name { display: inline-flex; align-items: center; gap: 0.4rem; min-width: 0; }
+.participants-name .hand-icon { color: var(--pink-strong); flex: none; }
+.participants-toggle.hand-raised { background: var(--pink); color: #1b1420; border-color: var(--pink); }
+.participant-status { color: var(--muted); font-size: 0.82rem; white-space: nowrap; display: flex; align-items: center; gap: 0.4rem; }
+.participant-status svg { display: block; flex: none; }
+.participant-status .status-icon-off { color: var(--danger); }
+.kick-button { margin-left: 0.4rem; padding: 0.2rem 0.6rem; font-size: 0.72rem; color: var(--danger); border-color: var(--danger); }
+
+@media (max-width: 36rem) {
+  .room-bottom-bar { left: 0.6rem; right: 0.6rem; transform: none; max-width: calc(100vw - 1.2rem); }
+  .has-sidebar { --sidebar-w: 100vw; }
+  .has-sidebar .lk-video-conference { padding-right: 0; }
+  .has-sidebar .room-bottom-bar { left: 0.6rem; max-width: calc(100vw - 1.2rem); }
+  .has-sidebar .room-topbar { right: 0; }
+  .room-title { display: none; }
+}
+
+/* ---------- темна тема: акцент стає домінантним кольором кнопок ---------- */
+/* У темній темі більшість кнопок отримують рожеву рамку за замовчуванням і
+   рожеве заповнення на ховері/активних станах — кругові icon-button та
+   перемикачі теми/мови лишаються як є (у них своя логіка). */
+
+:root[data-theme='dark'] button:not(.icon-button):not(.language-toggle button):not(.theme-toggle) {
+  border-color: var(--pink-strong);
+}
+:root[data-theme='dark'] button:not(.icon-button):not(.language-toggle button):not(.theme-toggle):hover:not(:disabled) {
+  background: var(--pink-soft);
+  border-color: var(--pink-strong);
+}
+:root[data-theme='dark'] .btn-primary {
+  background: var(--pink); color: #1b1420; border-color: var(--pink);
+}
+:root[data-theme='dark'] .btn-primary:hover:not(:disabled) {
+  background: var(--pink-strong); border-color: var(--pink-strong); box-shadow: none;
+}
+:root[data-theme='dark'] .participants-toggle {
+  background: var(--pink-soft); border-color: var(--pink-strong);
+}
+:root[data-theme='dark'] .participants-toggle:hover:not(:disabled) {
+  background: var(--pink); color: #1b1420;
+}
+
+/* ---------- вікно деталей зустрічі: більше повітря між блоками ---------- */
+.details-stack { display: flex; flex-direction: column; gap: 2rem; }
+.details-block p, .details-info p { margin: 0; }
+.details-block { display: flex; flex-direction: column; gap: 0.6rem; }
+.details-title { font-size: 1.1rem; }
+.details-info { display: flex; flex-direction: column; gap: 0.7rem; }
+.details-stack .form-actions { gap: 0.9rem; }
+
+/* ---------- меню «⋯» у кімнаті ---------- */
+.settings-wrap { position: relative; display: inline-flex; }
+.settings-trigger { width: 2.4rem; height: 2.4rem; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.settings-menu {
+  position: absolute; top: calc(100% + 0.6rem); right: 0; min-width: 19rem; z-index: 6;
+  display: flex; flex-direction: column; gap: 0.3rem; padding: 0.45rem;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+}
+.settings-menu button {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; text-align: left;
+  width: 100%; padding: 0.65rem 0.8rem; border-radius: var(--radius-md);
+}
+.settings-menu button span { display: flex; flex-direction: column; gap: 0.1rem; }
+.settings-menu button small { color: var(--muted); font-size: 0.74rem; font-weight: 400; }
+.switch { position: relative; flex: none; width: 2.3rem; height: 1.3rem; border-radius: 999px; background: var(--border); transition: background 120ms ease; }
+.switch::after { content: ''; position: absolute; top: 0.15rem; left: 0.15rem; width: 1rem; height: 1rem; border-radius: 50%; background: #fff; transition: transform 120ms ease; }
+.switch.on { background: var(--pink-strong); }
+.switch.on::after { transform: translateX(1rem); }
+
+@media (min-width: 48rem) {
+  .room-bottom-bar .lk-control-bar { flex-wrap: nowrap; }
+}
+
+/* ---------- головна: кнопка «Запланувати зустріч» ---------- */
+button.btn-primary.schedule-cta {
+  background: var(--pink-soft); color: var(--pink-strong); border-color: var(--pink-strong);
+}
+button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); color: #1b1420; border-color: var(--pink); box-shadow: none; }
+
+/* ---------- профіль ---------- */
+.page.page-profile { max-width: 40rem; display: flex; flex-direction: column; gap: 1.75rem; }
+.page-profile h1, .page-profile > h1 { margin: 0; }
+.profile-nav { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.page-profile .avatar-row { gap: 1.75rem; }
+.profile-form { display: flex; flex-direction: column; gap: 1.1rem; }
+.profile-form label { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem; color: var(--muted); font-weight: 500; }
+.btn-accent, :root[data-theme='dark'] .btn-accent { background: var(--pink-strong); color: #fff; border-color: var(--pink-strong); }
+.btn-accent:hover:not(:disabled), :root[data-theme='dark'] .btn-accent:hover:not(:disabled) { background: var(--pink); color: #1b1420; border-color: var(--pink); }

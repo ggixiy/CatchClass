@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ApiError } from '@/shared/api/http'
 import { Modal } from '@/shared/ui/Modal'
+import { useI18n } from '@/shared/i18n/I18nContext'
 import {
     createInstantMeeting, createMeeting, deleteMeeting, getMeeting, listOccurrences, updateMeeting,
     Meeting, MeetingFormData, MeetingOccurrence,
@@ -20,17 +21,25 @@ function monthRange(year: number, month: number) {
     }
 }
 
+function toDateKey(d: Date) {
+    return d.toISOString().slice(0, 10)
+}
+
 export function HomePage() {
+    const { t, locale } = useI18n()
+    const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US'
     const today = new Date()
     const [year, setYear] = useState(today.getFullYear())
     const [month, setMonth] = useState(today.getMonth())
     const [occurrences, setOccurrences] = useState<MeetingOccurrence[]>([])
-    const [selectedDay, setSelectedDay] = useState<string | null>(null)
+    const [selectedDay, setSelectedDay] = useState<string | null>(toDateKey(today))
     const [error, setError] = useState<string | null>(null)
 
     const [showScheduleForm, setShowScheduleForm] = useState(false)
     const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null)
     const [detailsMeeting, setDetailsMeeting] = useState<Meeting | null>(null)
+    // id миттєвої зустрічі, чиє вікно зараз відкрите: закриття без входу видаляє її.
+    const [instantId, setInstantId] = useState<string | null>(null)
     const [displayName, setDisplayName] = useState('')
 
     const navigate = useNavigate()
@@ -57,7 +66,7 @@ export function HomePage() {
 
     function reload() {
         const { from, to } = monthRange(year, month)
-        listOccurrences(from, to).then(setOccurrences).catch(() => setError('Не вдалося завантажити заняття'))
+        listOccurrences(from, to).then(setOccurrences).catch(() => setError(t('home.loadError')))
     }
 
     useEffect(reload, [year, month])
@@ -88,7 +97,27 @@ export function HomePage() {
         try {
             setDetailsMeeting(await getMeeting(meetingId))
         } catch (err) {
-            setError(err instanceof ApiError ? err.message : 'Не вдалося відкрити заняття')
+            setError(err instanceof ApiError ? err.message : t('home.detailsError'))
+        }
+    }
+
+    async function openEdit(meetingId: string) {
+        setError(null)
+        try {
+            setEditingMeeting(await getMeeting(meetingId))
+        } catch (err) {
+            setError(err instanceof ApiError ? err.message : t('home.detailsError'))
+        }
+    }
+
+    async function handleInlineDelete(meetingId: string) {
+        if (!window.confirm(t('home.confirmDelete'))) return
+        setError(null)
+        try {
+            await deleteMeeting(meetingId)
+            reload()
+        } catch (err) {
+            setError(err instanceof ApiError ? err.message : t('home.deleteError'))
         }
     }
 
@@ -107,6 +136,17 @@ export function HomePage() {
         setDetailsMeeting(updated)
     }
 
+    async function closeDetails() {
+        const meeting = detailsMeeting
+        const discard = meeting !== null && meeting.id === instantId
+        setDetailsMeeting(null)
+        setInstantId(null)
+        if (discard) {
+            try { await deleteMeeting(meeting.id) } catch { /* вже видалено */ }
+            reload()
+        }
+    }
+
     async function handleDelete() {
         if (!detailsMeeting) return
         try {
@@ -114,79 +154,96 @@ export function HomePage() {
             setDetailsMeeting(null)
             reload()
         } catch (err) {
-            setError(err instanceof ApiError ? err.message : 'Не вдалося видалити заняття')
+            setError(err instanceof ApiError ? err.message : t('home.deleteError'))
         }
     }
 
     async function handleInstantMeeting() {
         setError(null)
         try {
-            const meeting = await createInstantMeeting(`Заняття ${displayName || 'Нове'}`)
+            const meeting = await createInstantMeeting(t('home.instantTitle', { name: displayName || t('home.instantFallbackName') }))
             reload()
+            setInstantId(meeting.id)
             setDetailsMeeting(meeting)
         } catch (err) {
-            setError(err instanceof ApiError ? err.message : 'Не вдалося створити заняття')
+            setError(err instanceof ApiError ? err.message : t('home.instantError'))
         }
     }
+
+    const hour = new Date().getHours()
+    const greeting = hour < 12 ? t('home.greetingMorning') : hour < 18 ? t('home.greetingDay') : t('home.greetingEvening')
+    const selectedDayLabel = selectedDay
+        ? new Date(`${selectedDay}T00:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'long' })
+        : ''
 
     return (
         <main className="page-wide">
             <div className="home-header">
-                <h1>CatchClass</h1>
-                <Link to="/profile">Профіль</Link>
+                <h1>{greeting}{displayName ? `, ${displayName}` : ''}</h1>
+                <Link to="/profile">{t('home.profile')}</Link>
             </div>
             {error && <p className="error">{error}</p>}
 
             <div className="home-columns">
                 <section className="home-column">
-                    <div className="calendar-title-row">
-                        <h2>Plan meeting</h2>
-                        <button type="button" className="icon-button" onClick={() => setShowScheduleForm(true)} title="Запланувати заняття">+</button>
-                    </div>
-                    <MonthCalendar
-                        year={year}
-                        month={month}
-                        occurrencesByDay={occurrencesByDay}
-                        selectedDay={selectedDay}
-                        onSelectDay={setSelectedDay}
-                        onPrevMonth={goToPrevMonth}
-                        onNextMonth={goToNextMonth}
-                    />
-                    {selectedDay && (
-                        <div>
-                            <h3>Заняття {selectedDay}</h3>
-                            {dayOccurrences.length === 0 && <p className="hint">Немає занять цього дня.</p>}
-                            <ul className="meeting-list">
-                                {dayOccurrences.map((occ) => (
-                                    <li key={`${occ.meetingId}-${occ.startTime}`}>
-                                        <button type="button" onClick={() => openDetails(occ.meetingId)}>
-                                            {new Date(occ.startTime).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}
-                                            {' — '}{occ.title}{occ.recurring && ' 🔁'}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
+                    <div className="card">
+                        <div className="calendar-title-row">
+                            <h2>{selectedDay ? t('home.lessonsFor', { day: selectedDayLabel }) : t('home.scheduleTitle')}</h2>
+                            <button type="button" className="btn-primary schedule-cta" onClick={() => setShowScheduleForm(true)}>{t('home.scheduleButton')}</button>
                         </div>
-                    )}
+                        {dayOccurrences.length === 0 && <p className="hint">{t('home.lessonsEmpty')}</p>}
+                        <ul className="meeting-list">
+                            {dayOccurrences.map((occ) => (
+                                <li key={`${occ.meetingId}-${occ.startTime}`} className="meeting-list-item">
+                                    <button type="button" className="meeting-list-open" onClick={() => openDetails(occ.meetingId)}>
+                                        {new Date(occ.startTime).toLocaleTimeString(localeTag, { hour: '2-digit', minute: '2-digit' })}
+                                        {' — '}{occ.title}{occ.recurring && ' 🔁'}
+                                    </button>
+                                    <div className="meeting-list-actions">
+                                        <button type="button" className="icon-button" title={t('common.edit')} onClick={() => openEdit(occ.meetingId)}>✎</button>
+                                        <button type="button" className="icon-button icon-button-danger" title={t('common.delete')} onClick={() => handleInlineDelete(occ.meetingId)}>🗑</button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="card">
+                        <MonthCalendar
+                            year={year}
+                            month={month}
+                            occurrencesByDay={occurrencesByDay}
+                            selectedDay={selectedDay}
+                            onSelectDay={setSelectedDay}
+                            onPrevMonth={goToPrevMonth}
+                            onNextMonth={goToNextMonth}
+                        />
+                    </div>
                 </section>
 
                 <section className="home-column">
-                    <button type="button" className="btn-primary btn-block" onClick={handleInstantMeeting}>New meeting</button>
+                    <button type="button" className="btn-primary btn-block card-cta" onClick={handleInstantMeeting}>{t('home.newMeeting')}</button>
 
-                    <div className="join-block">
-                        <form className="join-block" onSubmit={handleJoinExisting}>
-                            <h2>Join Existing Meeting</h2>
+                    <div className="card">
+                        <form onSubmit={handleJoinExisting} className="stacked-form">
+                            <h2>{t('home.joinTitle')}</h2>
                             {joinError && <p className="error">{joinError}</p>}
-                            <input placeholder="Meeting ID" value={joinMeetingId} onChange={(e) => setJoinMeetingId(e.target.value)} required />
-                            <input placeholder="Meeting password" value={joinPassword} onChange={(e) => setJoinPassword(e.target.value)} />
-                            <button type="submit" className="btn-primary btn-block">Join</button>
+                            <label>
+                                Meeting ID
+                                <input value={joinMeetingId} onChange={(e) => setJoinMeetingId(e.target.value)} required />
+                            </label>
+                            <label>
+                                {t('common.password')}
+                                <input value={joinPassword} onChange={(e) => setJoinPassword(e.target.value)} />
+                            </label>
+                            <button type="submit" className="btn-primary btn-block field-full">{t('home.joinSubmit')}</button>
                         </form>
                     </div>
                 </section>
             </div>
 
             {showScheduleForm && (
-                <Modal title="Запланувати заняття" onClose={() => setShowScheduleForm(false)}>
+                <Modal title={t('home.scheduleAddTitle')} onClose={() => setShowScheduleForm(false)} wide>
                     <ScheduleMeetingForm
                         initialDate={selectedDay ?? undefined}
                         onSubmit={handleCreate}
@@ -196,7 +253,7 @@ export function HomePage() {
             )}
 
             {editingMeeting && (
-                <Modal title="Редагувати заняття" onClose={() => setEditingMeeting(null)}>
+                <Modal title={t('home.editTitle')} onClose={() => setEditingMeeting(null)} wide>
                     <ScheduleMeetingForm
                         initial={editingMeeting}
                         onSubmit={handleUpdate}
@@ -206,10 +263,11 @@ export function HomePage() {
             )}
 
             {detailsMeeting && !editingMeeting && (
-                <Modal title="Заняття" onClose={() => setDetailsMeeting(null)}>
+                <Modal title={t('home.detailsTitle')} onClose={closeDetails}>
                     <MeetingDetailsModal
                         meeting={detailsMeeting}
-                        onJoin={() => { setDetailsMeeting(null); startJoin(detailsMeeting.publicId, detailsMeeting.password ?? '') }}
+                        instant={detailsMeeting.id === instantId}
+                        onJoin={() => { setDetailsMeeting(null); setInstantId(null); startJoin(detailsMeeting.publicId, detailsMeeting.password ?? '') }}
                         onEdit={() => { setEditingMeeting(detailsMeeting); setDetailsMeeting(null) }}
                         onDelete={handleDelete}
                     />

@@ -62,6 +62,12 @@ public class UserService implements UserApi {
         return repository.findByEmail(email).map(this::toSummary);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<String> findPhotoUrl(UUID id) {
+        return Optional.ofNullable(photoUrlOrNull(id));
+    }
+
     // ---- для UserController / UserPhotoController ----
 
     @Transactional(readOnly = true)
@@ -122,11 +128,12 @@ public class UserService implements UserApi {
     }
 
     private UserProfileResponse toProfileResponse(User user) {
-        // photoUrl — не збережений рядок, а обчислене посилання: є фото в таблиці photos чи нема.
-        String photoUrl = photoRepository.existsById(user.getId())
-                ? "/api/users/" + user.getId() + "/photo"
-                : null;
-        return new UserProfileResponse(user.getId(), user.getEmail(), user.getDisplayName(), photoUrl);
+        return new UserProfileResponse(user.getId(), user.getEmail(), user.getDisplayName(), photoUrlOrNull(user.getId()));
+    }
+
+    // photoUrl — не збережений рядок, а обчислене посилання: є фото в таблиці photos чи нема.
+    private String photoUrlOrNull(UUID userId) {
+        return photoRepository.existsById(userId) ? "/api/users/" + userId + "/photo" : null;
     }
 
     private ApiException conflict() {

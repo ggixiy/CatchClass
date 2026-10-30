@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useI18n } from '@/shared/i18n/I18nContext'
 
 interface DeviceSelectProps {
     kind: 'audioinput' | 'videoinput'
@@ -10,6 +11,7 @@ interface DeviceSelectProps {
 // з нормальними назвами (а не "Camera 1") лише після того, як браузер уже видав
 // дозвіл на доступ хоча б один раз у цій вкладці — це штатна поведінка браузера.
 export function DeviceSelect({ kind, value, onChange }: DeviceSelectProps) {
+    const { t } = useI18n()
     const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
 
     useEffect(() => {
@@ -24,7 +26,7 @@ export function DeviceSelect({ kind, value, onChange }: DeviceSelectProps) {
 
     if (devices.length < 2) return null
 
-    const label = kind === 'videoinput' ? 'Камера' : 'Мікрофон'
+    const label = kind === 'videoinput' ? t('device.camera') : t('device.microphone')
 
     return (
         <select

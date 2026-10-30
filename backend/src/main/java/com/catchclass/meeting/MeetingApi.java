@@ -12,4 +12,7 @@ public interface MeetingApi {
     Optional<MeetingAccess> checkAccess(String publicId, String password);
 
     Optional<MeetingAccess> findById(UUID id);
+
+    /** Вмикає/вимикає кімнату очікування вже існуючого заняття (під час проведення). */
+    void setWaitingRoomEnabled(UUID id, boolean enabled);
 }

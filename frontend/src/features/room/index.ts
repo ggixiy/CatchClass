@@ -1,5 +1,6 @@
 export { WaitingRoomPage } from './pages/WaitingRoomPage'
 export { MeetingRoomPage } from './pages/MeetingRoomPage'
+export { JoinLinkPage } from './pages/JoinLinkPage'
 export { PreJoinLobby } from './pages/PreJoinLobby'
 export { joinRoom } from './api/roomApi'
 export type { RoomStatus } from './api/roomApi'

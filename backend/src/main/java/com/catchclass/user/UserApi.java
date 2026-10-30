@@ -10,4 +10,7 @@ public interface UserApi {
     Optional<UserSummary> findById(UUID id);
 
     Optional<UserSummary> findByEmail(String email);
+
+    /** URL фото профілю (/api/users/{id}/photo), якщо воно завантажене; інакше порожньо. */
+    Optional<String> findPhotoUrl(UUID id);
 }

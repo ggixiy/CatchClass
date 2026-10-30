@@ -91,6 +91,10 @@ public class Meeting {
         this.waitingRoomEnabled = waitingRoomEnabled;
     }
 
+    public void changeWaitingRoom(boolean enabled) {
+        this.waitingRoomEnabled = enabled;
+    }
+
     public UUID getId() { return id; }
     public String getPublicId() { return publicId; }
     public String getPassword() { return password; }

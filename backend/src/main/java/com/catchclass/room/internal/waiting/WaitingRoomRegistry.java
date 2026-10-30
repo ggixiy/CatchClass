@@ -42,6 +42,15 @@ public class WaitingRoomRegistry {
         return guests.values().stream().filter(g -> g.getStatus() == GuestStatus.WAITING).toList();
     }
 
+    /** Усі допущені учасники кімнати — для показу фото інших учасників у зустрічі. */
+    public Collection<WaitingGuest> listAdmitted(UUID meetingId) {
+        Map<UUID, WaitingGuest> guests = byMeeting.get(meetingId);
+        if (guests == null) {
+            return List.of();
+        }
+        return guests.values().stream().filter(g -> g.getStatus() == GuestStatus.ADMITTED).toList();
+    }
+
     public void clear(UUID meetingId) {
         byMeeting.remove(meetingId);
     }

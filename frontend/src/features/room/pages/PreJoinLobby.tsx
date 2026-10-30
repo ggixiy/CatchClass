@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { createLocalAudioTrack, createLocalVideoTrack, LocalAudioTrack, LocalVideoTrack } from 'livekit-client'
 import { ApiError } from '@/shared/api/http'
+import { useI18n } from '@/shared/i18n/I18nContext'
 import { joinRoom } from '../api/roomApi'
 import { DeviceSelect } from '../components/DeviceSelect'
 import { MicLevelMeter } from '../components/MicLevelMeter'
@@ -22,6 +23,7 @@ interface PreJoinLocationState {
 // або прямо в конференцію, або в кімнату очікування — щоб пристрої не "оживали"
 // самі по собі після фактичного приєднання.
 export function PreJoinLobby() {
+    const { t } = useI18n()
     const location = useLocation()
     const navigate = useNavigate()
     const state = location.state as PreJoinLocationState | undefined
@@ -52,6 +54,20 @@ export function PreJoinLobby() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    // Реальна причина "чорного екрана": toggleCam викликав track.attach(videoRef.current)
+    // одразу після setCamOn(true), але в цей момент <video> ще не змонтовано — у поточному
+    // рендері там був <div className="camera-off-note">, і ref показував на null. Елемент
+    // з'являвся лише НАСТУПНИМ рендером, уже без прив'язаного треку. Прив'язуємо трек тут,
+    // в ефекті, який спрацьовує вже ПІСЛЯ того, як React змонтував <video> для camOn=true.
+    useEffect(() => {
+        if (videoTrack && videoRef.current) {
+            videoTrack.attach(videoRef.current)
+        }
+        return () => {
+            videoTrack?.detach()
+        }
+    }, [videoTrack])
+
     async function toggleCam() {
         setDeviceError(null)
         if (camOn) {
@@ -64,9 +80,8 @@ export function PreJoinLobby() {
             const track = await createLocalVideoTrack(camDeviceId ? { deviceId: camDeviceId } : undefined)
             setVideoTrack(track)
             setCamOn(true)
-            if (videoRef.current) track.attach(videoRef.current)
         } catch {
-            setDeviceError('Не вдалося отримати доступ до камери')
+            setDeviceError(t('device.cameraError'))
         }
     }
 
@@ -83,7 +98,7 @@ export function PreJoinLobby() {
             setAudioTrack(track)
             setMicOn(true)
         } catch {
-            setDeviceError('Не вдалося отримати доступ до мікрофона')
+            setDeviceError(t('device.micError'))
         }
     }
 
@@ -121,37 +136,40 @@ export function PreJoinLobby() {
                 navigate(`/waiting/${result.meetingId}`, { state: { camOn, micOn } })
             }
         } catch (err) {
-            setJoinError(err instanceof ApiError ? err.message : 'Не вдалося приєднатися до заняття')
+            setJoinError(err instanceof ApiError ? err.message : t('prejoin.joinError'))
             setJoining(false)
         }
     }
 
     return (
-        <main className="page">
-            <h1>Перевірка пристроїв</h1>
+        <main className="page-media">
+            <h1>{t('prejoin.title')}</h1>
             {deviceError && <p className="error">{deviceError}</p>}
             {joinError && <p className="error">{joinError}</p>}
             <div className="preview-box">
                 {camOn
                     ? <video ref={videoRef} autoPlay muted playsInline className="preview-video" />
-                    : <div className="camera-off-note">Камера вимкнена</div>}
+                    : <div className="camera-off-note">{t('device.cameraOff')}</div>}
             </div>
 
             <div className="device-row">
-                <button type="button" onClick={toggleCam}>{camOn ? 'Вимкнути камеру' : 'Увімкнути камеру'}</button>
+                <button type="button" onClick={toggleCam}>{camOn ? t('device.cameraTurnOff') : t('device.cameraOn')}</button>
                 <DeviceSelect kind="videoinput" value={camDeviceId} onChange={handleCamDeviceChange} />
             </div>
             <div className="device-row">
-                <button type="button" onClick={toggleMic}>{micOn ? 'Вимкнути мікрофон' : 'Увімкнути мікрофон'}</button>
+                <button type="button" onClick={toggleMic}>{micOn ? t('device.micTurnOff') : t('device.micOn')}</button>
                 <DeviceSelect kind="audioinput" value={micDeviceId} onChange={handleMicDeviceChange} />
             </div>
             {micOn && <MicLevelMeter track={audioTrack} />}
-            {micOn && <p className="hint">Скажіть щось — смужка вище має рухатись, якщо мікрофон працює.</p>}
+            {micOn && <p className="hint">{t('device.micHint')}</p>}
 
-            <p className="hint">Камера й мікрофон вимкнені за замовчуванням — увімкніть їх, якщо потрібно.</p>
+            <p className="hint">{t('prejoin.defaultHint')}</p>
             <div className="form-actions">
+                <button type="button" className="btn-secondary" onClick={() => navigate('/')} disabled={joining}>
+                    {t('common.cancel')}
+                </button>
                 <button type="button" className="btn-primary" onClick={handleJoin} disabled={joining}>
-                    {joining ? 'Приєднання…' : 'Приєднатися'}
+                    {joining ? t('prejoin.joining') : t('prejoin.join')}
                 </button>
             </div>
         </main>
