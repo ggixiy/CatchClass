@@ -1,6 +1,5 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { logout } from '@/features/auth'
 import { ApiError } from '@/shared/api/http'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { deleteMyPhoto, getMyProfile, updateMyProfile, uploadMyPhoto, UserProfile } from '../api/userApi'
@@ -73,21 +72,12 @@ export function ProfilePage() {
         }
     }
 
-    async function handleLogout() {
-        await logout()
-        navigate('/login')
-    }
-
     if (loading) return <main className="page"><p>{t('common.loading')}</p></main>
     if (error && !profile) return <main className="page"><p className="error">{error}</p></main>
     if (!profile) return null
 
     return (
         <main className="page page-profile">
-            <nav className="profile-nav">
-                <button type="button" onClick={() => navigate('/')}>← {t('profile.backHome')}</button>
-                <button type="button" className="btn-accent" onClick={handleLogout}>{t('profile.logout')}</button>
-            </nav>
             <h1>{t('profile.title')}</h1>
             {error && <p className="error">{error}</p>}
 

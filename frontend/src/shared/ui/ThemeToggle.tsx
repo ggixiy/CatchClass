@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { MoonIcon, SunIcon } from './icons'
 import { useI18n } from '../i18n/I18nContext'
 
 type Theme = 'light' | 'dark'
@@ -44,7 +45,7 @@ export function ThemeToggle() {
             title={theme === 'dark' ? t('theme.toLight') : t('theme.toDark')}
             aria-label={theme === 'dark' ? t('theme.enableLight') : t('theme.enableDark')}
         >
-            {theme === 'dark' ? '☀️' : '🌙'}
+            {theme === 'dark' ? <SunIcon size={22} /> : <MoonIcon size={22} />}
         </button>
     )
 }

@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
 import { ApiError } from '@/shared/api/http'
+import { EditIcon, TrashIcon } from '@/shared/ui/icons'
 import { Modal } from '@/shared/ui/Modal'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import {
@@ -180,7 +180,6 @@ export function HomePage() {
         <main className="page-wide">
             <div className="home-header">
                 <h1>{greeting}{displayName ? `, ${displayName}` : ''}</h1>
-                <Link to="/profile">{t('home.profile')}</Link>
             </div>
             {error && <p className="error">{error}</p>}
 
@@ -200,8 +199,8 @@ export function HomePage() {
                                         {' — '}{occ.title}{occ.recurring && ' 🔁'}
                                     </button>
                                     <div className="meeting-list-actions">
-                                        <button type="button" className="icon-button" title={t('common.edit')} onClick={() => openEdit(occ.meetingId)}>✎</button>
-                                        <button type="button" className="icon-button icon-button-danger" title={t('common.delete')} onClick={() => handleInlineDelete(occ.meetingId)}>🗑</button>
+                                        <button type="button" className="icon-button" title={t('common.edit')} onClick={() => openEdit(occ.meetingId)}><EditIcon size={22} /></button>
+                                        <button type="button" className="icon-button icon-button-danger" title={t('common.delete')} onClick={() => handleInlineDelete(occ.meetingId)}><TrashIcon size={22} /></button>
                                     </div>
                                 </li>
                             ))}
@@ -222,9 +221,7 @@ export function HomePage() {
                 </section>
 
                 <section className="home-column">
-                    <button type="button" className="btn-primary btn-block card-cta" onClick={handleInstantMeeting}>{t('home.newMeeting')}</button>
-
-                    <div className="card">
+                    <div className="card join-card">
                         <form onSubmit={handleJoinExisting} className="stacked-form">
                             <h2>{t('home.joinTitle')}</h2>
                             {joinError && <p className="error">{joinError}</p>}
@@ -233,12 +230,14 @@ export function HomePage() {
                                 <input value={joinMeetingId} onChange={(e) => setJoinMeetingId(e.target.value)} required />
                             </label>
                             <label>
-                                {t('common.password')}
+                                {t('home.joinPasswordLabel')}
                                 <input value={joinPassword} onChange={(e) => setJoinPassword(e.target.value)} />
                             </label>
                             <button type="submit" className="btn-primary btn-block field-full">{t('home.joinSubmit')}</button>
                         </form>
                     </div>
+
+                    <button type="button" className="btn-primary btn-block card-cta" onClick={handleInstantMeeting}>{t('home.newMeeting')}</button>
                 </section>
             </div>
 

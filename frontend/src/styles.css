@@ -174,7 +174,7 @@ form > h2, form > h3, form > .error, form > .hint { flex-basis: 100%; margin: 0;
 /* Двостовпцева сітка для довших форм (планування заняття, приєднання) —
    поля природно розтягуються на всю ширину замість тісного однорядкового flex. */
 .stacked-form {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem 1.25rem; margin-bottom: 0;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem 1.25rem; margin-bottom: 0;
 }
 .stacked-form > h2, .stacked-form > h3, .stacked-form > .error, .stacked-form > .hint,
 .stacked-form > .form-actions, .stacked-form > label.checkbox-row, .stacked-form > .field-full {
@@ -265,7 +265,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 }
 .icon-button:hover:not(:disabled) { background: var(--pink-soft); }
 .icon-button:active:not(:disabled) { transform: scale(0.94); }
-.icon-button-danger:hover:not(:disabled) { background: var(--danger-soft); }
+.icon-button-danger:hover:not(:disabled) { background: var(--danger-soft); color: var(--danger); }
+.icon-button svg { display: block; }
 .icon-button.calendar-nav { width: 2.6rem; height: 2.6rem; font-size: 1.2rem; }
 
 /* ---------- профіль / аватар ---------- */
@@ -299,7 +300,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 }
 .home-header a:hover { border-color: var(--pink-strong); }
 
-.home-columns { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.75rem; align-items: start; }
+.home-columns { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 1.75rem; align-items: start; }
 .home-column { min-width: 0; display: flex; flex-direction: column; gap: 1.25rem; }
 
 .card {
@@ -426,7 +427,8 @@ body.in-room .floating-toggles { display: none; }
   background: var(--surface); box-shadow: var(--shadow-md); border: 1px solid var(--border);
   transition: background 150ms ease;
 }
-.theme-toggle:hover:not(:disabled) { background: var(--pink-soft); }
+.theme-toggle { color: var(--text); }
+.theme-toggle:hover:not(:disabled) { background: var(--pink-soft); color: var(--pink-strong); }
 
 .language-toggle {
   display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill);
@@ -596,23 +598,10 @@ body.in-room .floating-toggles { display: none; }
 }
 
 /* ---------- темна тема: акцент стає домінантним кольором кнопок ---------- */
-/* У темній темі більшість кнопок отримують рожеву рамку за замовчуванням і
-   рожеве заповнення на ховері/активних станах — кругові icon-button та
-   перемикачі теми/мови лишаються як є (у них своя логіка). */
+/* Типи кнопок однакові в обох темах: звичайна (нейтральна), чорно-біла (.btn-primary: --ink на
+   --ink-contrast) і рожева (.btn-secondary, .card-cta, .schedule-cta, .btn-accent). Темна тема
+   лише підміняє змінні, окремих правил для кнопок не потрібно. */
 
-:root[data-theme='dark'] button:not(.icon-button):not(.language-toggle button):not(.theme-toggle) {
-  border-color: var(--pink-strong);
-}
-:root[data-theme='dark'] button:not(.icon-button):not(.language-toggle button):not(.theme-toggle):hover:not(:disabled) {
-  background: var(--pink-soft);
-  border-color: var(--pink-strong);
-}
-:root[data-theme='dark'] .btn-primary {
-  background: var(--pink); color: #1b1420; border-color: var(--pink);
-}
-:root[data-theme='dark'] .btn-primary:hover:not(:disabled) {
-  background: var(--pink-strong); border-color: var(--pink-strong); box-shadow: none;
-}
 :root[data-theme='dark'] .participants-toggle {
   background: var(--pink-soft); border-color: var(--pink-strong);
 }
@@ -665,5 +654,85 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 .page-profile .avatar-row { gap: 1.75rem; }
 .profile-form { display: flex; flex-direction: column; gap: 1.1rem; }
 .profile-form label { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.88rem; color: var(--muted); font-weight: 500; }
-.btn-accent, :root[data-theme='dark'] .btn-accent { background: var(--pink-strong); color: #fff; border-color: var(--pink-strong); }
-.btn-accent:hover:not(:disabled), :root[data-theme='dark'] .btn-accent:hover:not(:disabled) { background: var(--pink); color: #1b1420; border-color: var(--pink); }
+.btn-accent { background: var(--pink-strong); color: #fff; border-color: var(--pink-strong); }
+.btn-accent:hover:not(:disabled) { background: var(--pink); color: #1b1420; border-color: var(--pink); }
+
+/* ---------- шапка, футер, логотип ---------- */
+.logo-mark { display: inline-flex; flex: none; }
+.logo-mark svg { width: 100%; height: 100%; }
+.logo-dark { display: none; }
+:root[data-theme='dark'] .logo-light { display: none; }
+:root[data-theme='dark'] .logo-dark { display: block; }
+
+.app-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.app-content { flex: 1; }
+
+.site-header {
+  position: sticky; top: 0; z-index: 40; background: var(--surface);
+  border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm);
+}
+.site-header-inner {
+  max-width: 84rem; margin: 0 auto; padding: 0.7rem 1.25rem;
+  display: flex; align-items: center; gap: 1.5rem;
+}
+.site-brand { display: inline-flex; align-items: center; gap: 0.65rem; text-decoration: none; color: var(--text); }
+.site-brand-name { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; letter-spacing: -0.01em; }
+.site-nav { display: flex; align-items: center; gap: 0.4rem; flex: 1; }
+.site-nav a {
+  padding: 0.45rem 1rem; border-radius: var(--radius-pill); text-decoration: none; color: var(--muted);
+  font-family: var(--font-display); font-weight: 600; font-size: 0.92rem;
+  transition: background 120ms ease, color 120ms ease;
+}
+.site-nav a:hover { background: var(--surface-2); color: var(--text); }
+.site-nav a.active { background: var(--pink-soft); color: var(--pink-strong); }
+.site-header-actions { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
+.site-header-actions .theme-toggle { width: 2.4rem; height: 2.4rem; font-size: 1.05rem; box-shadow: none; }
+
+.site-footer { background: var(--surface); border-top: 1px solid var(--border); margin-top: 3rem; }
+.site-footer-inner {
+  max-width: 84rem; margin: 0 auto; padding: 2.25rem 1.25rem 1.5rem;
+  display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2.5rem;
+}
+.site-footer-about p { margin: 0.8rem 0 0; color: var(--muted); font-size: 0.9rem; max-width: 24rem; line-height: 1.5; }
+.site-footer-col h2 { margin: 0 0 0.8rem; font-size: 0.95rem; }
+.site-footer-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.site-footer-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+.site-footer-col a:hover { color: var(--pink-strong); }
+.site-footer-bottom {
+  max-width: 84rem; margin: 0 auto; padding: 1rem 1.25rem 1.5rem; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.82rem;
+}
+@media (max-width: 48rem) {
+  .site-header-inner { flex-wrap: wrap; gap: 0.75rem; }
+  .site-nav { order: 3; flex-basis: 100%; }
+  .site-footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
+:root[data-theme='dark'] .btn-accent { background: var(--pink); color: #1b1420; border-color: var(--pink); }
+:root[data-theme='dark'] .btn-accent:hover:not(:disabled) { background: var(--pink-strong); border-color: var(--pink-strong); }
+
+/* Блок «Приєднатися до заняття»: вищий, з більшим повітрям між полями. */
+.join-card { padding: 2.25rem 1.75rem; }
+.join-card .stacked-form { gap: 1.5rem; }
+.join-card input { padding-top: 0.8rem; padding-bottom: 0.8rem; }
+
+/* ---------- адаптивність полів і центрування форм входу ---------- */
+.card { min-width: 0; }
+.stacked-form input, .stacked-form select, .stacked-form textarea { min-width: 0; width: 100%; }
+.stacked-form > button { min-width: 0; max-width: 100%; }
+
+/* Сторінки з формою (вхід, реєстрація, профіль...) центруються по вертикалі між шапкою й футером. */
+.app-content { display: flex; flex-direction: column; padding: 1.5rem 0; }
+.app-content > .page, .app-content > .page-media {
+  width: 100%; margin-top: auto; margin-bottom: auto; margin-left: auto; margin-right: auto;
+}
+@media (max-width: 40rem) {
+  .app-content > .page { width: calc(100% - 1.5rem); padding: 1.75rem 1.25rem; }
+  .app-content > .page-media { width: calc(100% - 1.5rem); }
+}
+
+/* Посилання «Немає акаунта?» і «Забули пароль?» — одна група, між ними менший проміжок. */
+.page > p:has(> a:only-child) { margin: 0; }
+.page > p:has(> a:only-child) + p:has(> a:only-child) { margin-top: -0.65rem; }
+.page form { margin-bottom: 0; }
+.page form > button { max-width: 100%; }

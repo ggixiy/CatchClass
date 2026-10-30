@@ -56,9 +56,9 @@ interface SizedIconProps extends IconProps {
     size?: number
 }
 
-function Svg({ className, size = 16, children }: SizedIconProps & { children: ReactNode }) {
+function Svg({ className, size = 16, strokeWidth = 2, children }: SizedIconProps & { strokeWidth?: number; children: ReactNode }) {
     return (
-        <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             {children}
         </svg>
     )
@@ -124,6 +124,45 @@ export function MicLockedIcon(props: SizedIconProps) {
             <path d="M19 11a7 7 0 0 1-1.1 3.75" />
             <line x1="12" y1="18" x2="12" y2="22" />
             <line x1="3" y1="3" x2="21" y2="21" />
+        </Svg>
+    )
+}
+
+// Тема: тонкі контурні місяць і сонце (показуємо ту, на яку перемкнемось).
+export function MoonIcon(props: SizedIconProps) {
+    return (
+        <Svg strokeWidth={1.1} {...props}>
+            <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+        </Svg>
+    )
+}
+
+export function SunIcon(props: SizedIconProps) {
+    return (
+        <Svg strokeWidth={1.1} {...props}>
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+        </Svg>
+    )
+}
+
+// Редагувати / видалити: контурні (без заливки) лінії завтовшки ~1px.
+export function EditIcon(props: SizedIconProps) {
+    return (
+        <Svg strokeWidth={1.1} {...props}>
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </Svg>
+    )
+}
+
+export function TrashIcon(props: SizedIconProps) {
+    return (
+        <Svg strokeWidth={1.1} {...props}>
+            <path d="M3 6h18" />
+            <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6M14 11v6" />
         </Svg>
     )
 }
