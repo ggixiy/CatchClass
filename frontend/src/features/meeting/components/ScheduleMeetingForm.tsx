@@ -1,11 +1,15 @@
 import { FormEvent, useState } from 'react'
 import { ApiError } from '@/shared/api/http'
+import { Select } from '@/shared/ui/Select'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { generateMeetingPassword, Meeting, MeetingFormData, RecurrenceRule } from '../api/meetingApi'
 
 interface ScheduleMeetingFormProps {
     initial?: Meeting
     initialDate?: string
+    // Курси викладача, до яких можна прив'язати заняття (порожньо/немає — вибору курсу не показуємо).
+    courses?: { id: string; title: string }[]
+    defaultCourseId?: string
     onSubmit: (data: MeetingFormData) => Promise<void>
     onCancel: () => void
 }
@@ -28,7 +32,7 @@ function defaultStartForDay(day: string): string {
     return `${rounded.getFullYear()}-${pad(rounded.getMonth() + 1)}-${pad(rounded.getDate())}T${pad(rounded.getHours())}:${pad(rounded.getMinutes())}`
 }
 
-export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }: ScheduleMeetingFormProps) {
+export function ScheduleMeetingForm({ initial, initialDate, courses, defaultCourseId, onSubmit, onCancel }: ScheduleMeetingFormProps) {
     const { t } = useI18n()
     const [title, setTitle] = useState(initial?.title ?? '')
     const [description, setDescription] = useState(initial?.description ?? '')
@@ -41,6 +45,7 @@ export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }
     const [requirePassword, setRequirePassword] = useState(initial ? Boolean(initial.password) : true)
     const [password, setPassword] = useState(initial?.password ?? generateMeetingPassword())
     const [waitingRoomEnabled, setWaitingRoomEnabled] = useState(initial?.waitingRoomEnabled ?? true)
+    const [courseId, setCourseId] = useState<string>(initial?.courseId ?? defaultCourseId ?? '')
     const [error, setError] = useState<string | null>(null)
     const [submitting, setSubmitting] = useState(false)
 
@@ -65,6 +70,7 @@ export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }
                 requirePassword,
                 password: requirePassword ? password : '',
                 waitingRoomEnabled,
+                courseId: courseId || null,
             })
         } catch (err) {
             setError(err instanceof ApiError ? err.message : t('schedule.error'))
@@ -87,6 +93,15 @@ export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }
                     onChange={(e) => setDescription(e.target.value)}
                 />
             </label>
+            {courses && courses.length > 0 && (
+                <Select
+                    className="field-full"
+                    label={t('schedule.course')}
+                    value={courseId}
+                    onChange={setCourseId}
+                    options={[{ value: '', label: t('schedule.courseNone') }, ...courses.map((c) => ({ value: c.id, label: c.title }))]}
+                />
+            )}
             <label>
                 {t('schedule.start')}
                 <input type="datetime-local" value={startLocal} onChange={(e) => setStartLocal(e.target.value)} required />
@@ -98,14 +113,16 @@ export function ScheduleMeetingForm({ initial, initialDate, onSubmit, onCancel }
                     onChange={(e) => setDurationMinutes(Number(e.target.value))} required
                 />
             </label>
-            <label>
-                {t('schedule.recurrence')}
-                <select value={recurrence} onChange={(e) => setRecurrence(e.target.value as RecurrenceRule)}>
-                    <option value="NONE">{t('schedule.recurrenceNone')}</option>
-                    <option value="WEEKLY">{t('schedule.recurrenceWeekly')}</option>
-                    <option value="MONTHLY">{t('schedule.recurrenceMonthly')}</option>
-                </select>
-            </label>
+            <Select
+                label={t('schedule.recurrence')}
+                value={recurrence}
+                onChange={(v) => setRecurrence(v as RecurrenceRule)}
+                options={[
+                    { value: 'NONE', label: t('schedule.recurrenceNone') },
+                    { value: 'WEEKLY', label: t('schedule.recurrenceWeekly') },
+                    { value: 'MONTHLY', label: t('schedule.recurrenceMonthly') },
+                ]}
+            />
             {recurrence !== 'NONE' && (
                 <label className="reveal-field">
                     {t('schedule.recurrenceUntil')}

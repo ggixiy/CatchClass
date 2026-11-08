@@ -1,5 +1,7 @@
 import { ApiError } from '@/shared/api/http'
-import { EditIcon, TrashIcon } from '@/shared/ui/icons'
+import { EditIcon, RepeatIcon, TrashIcon } from '@/shared/ui/icons'
+import { Course, listCourses } from '@/features/course'
+import { DeleteOccurrenceDialog } from '../components/DeleteOccurrenceDialog'
 import { Modal } from '@/shared/ui/Modal'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import {
@@ -41,6 +43,8 @@ export function HomePage() {
     // id миттєвої зустрічі, чиє вікно зараз відкрите: закриття без входу видаляє її.
     const [instantId, setInstantId] = useState<string | null>(null)
     const [displayName, setDisplayName] = useState('')
+    const [deletingOccurrence, setDeletingOccurrence] = useState<MeetingOccurrence | null>(null)
+    const [courses, setCourses] = useState<Course[]>([])
 
     const navigate = useNavigate()
     const [joinMeetingId, setJoinMeetingId] = useState('')
@@ -70,6 +74,9 @@ export function HomePage() {
     }
 
     useEffect(reload, [year, month])
+    useEffect(() => { listCourses().then(setCourses).catch(() => {}) }, [])
+    const ownedCourses = useMemo(() => courses.filter((c) => c.owner), [courses])
+    const courseTitle = (id: string | null) => courses.find((c) => c.id === id)?.title
 
     const occurrencesByDay = useMemo(() => {
         const map = new Map<string, number>()
@@ -110,11 +117,16 @@ export function HomePage() {
         }
     }
 
-    async function handleInlineDelete(meetingId: string) {
+    async function handleInlineDelete(occ: MeetingOccurrence) {
+        // Повторюване заняття: питаємо, видалити лише це проведення чи всю серію.
+        if (occ.recurring) {
+            setDeletingOccurrence(occ)
+            return
+        }
         if (!window.confirm(t('home.confirmDelete'))) return
         setError(null)
         try {
-            await deleteMeeting(meetingId)
+            await deleteMeeting(occ.meetingId)
             reload()
         } catch (err) {
             setError(err instanceof ApiError ? err.message : t('home.deleteError'))
@@ -194,14 +206,21 @@ export function HomePage() {
                         <ul className="meeting-list">
                             {dayOccurrences.map((occ) => (
                                 <li key={`${occ.meetingId}-${occ.startTime}`} className="meeting-list-item">
-                                    <button type="button" className="meeting-list-open" onClick={() => openDetails(occ.meetingId)}>
+                                    <button type="button" className="meeting-list-open" onClick={() => occ.own ? openDetails(occ.meetingId) : startJoin(occ.publicId, '')}>
                                         {new Date(occ.startTime).toLocaleTimeString(localeTag, { hour: '2-digit', minute: '2-digit' })}
-                                        {' — '}{occ.title}{occ.recurring && ' 🔁'}
+                                        {' — '}{occ.title}{occ.recurring && <RepeatIcon className="recurring-icon" size={16} />}
+                                        {courseTitle(occ.courseId) && <span className="meeting-course-tag">{courseTitle(occ.courseId)}</span>}
                                     </button>
-                                    <div className="meeting-list-actions">
-                                        <button type="button" className="icon-button" title={t('common.edit')} onClick={() => openEdit(occ.meetingId)}><EditIcon size={22} /></button>
-                                        <button type="button" className="icon-button icon-button-danger" title={t('common.delete')} onClick={() => handleInlineDelete(occ.meetingId)}><TrashIcon size={22} /></button>
-                                    </div>
+                                    {occ.own ? (
+                                        <div className="meeting-list-actions">
+                                            <button type="button" className="icon-button" title={t('common.edit')} onClick={() => openEdit(occ.meetingId)}><EditIcon size={22} /></button>
+                                            <button type="button" className="icon-button icon-button-danger" title={t('common.delete')} onClick={() => handleInlineDelete(occ)}><TrashIcon size={22} /></button>
+                                        </div>
+                                    ) : (
+                                        <div className="meeting-list-actions">
+                                            <button type="button" className="btn-primary" onClick={() => startJoin(occ.publicId, '')}>{t('meetingDetails.join')}</button>
+                                        </div>
+                                    )}
                                 </li>
                             ))}
                         </ul>
@@ -245,6 +264,7 @@ export function HomePage() {
                 <Modal title={t('home.scheduleAddTitle')} onClose={() => setShowScheduleForm(false)} wide>
                     <ScheduleMeetingForm
                         initialDate={selectedDay ?? undefined}
+                        courses={ownedCourses}
                         onSubmit={handleCreate}
                         onCancel={() => setShowScheduleForm(false)}
                     />
@@ -255,10 +275,19 @@ export function HomePage() {
                 <Modal title={t('home.editTitle')} onClose={() => setEditingMeeting(null)} wide>
                     <ScheduleMeetingForm
                         initial={editingMeeting}
+                        courses={ownedCourses}
                         onSubmit={handleUpdate}
                         onCancel={() => setEditingMeeting(null)}
                     />
                 </Modal>
+            )}
+
+            {deletingOccurrence && (
+                <DeleteOccurrenceDialog
+                    occurrence={deletingOccurrence}
+                    onClose={() => setDeletingOccurrence(null)}
+                    onDeleted={() => { setDeletingOccurrence(null); reload() }}
+                />
             )}
 
             {detailsMeeting && !editingMeeting && (

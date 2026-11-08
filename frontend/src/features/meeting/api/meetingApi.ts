@@ -13,6 +13,7 @@ export interface Meeting {
     recurrence: RecurrenceRule
     recurrenceEndsAt: string | null
     waitingRoomEnabled: boolean
+    courseId: string | null
 }
 
 export interface MeetingOccurrence {
@@ -22,6 +23,9 @@ export interface MeetingOccurrence {
     startTime: string
     endTime: string
     recurring: boolean
+    courseId: string | null
+    // true — це заняття веде сам користувач; false — заняття курсу, де він студент
+    own: boolean
 }
 
 export interface MeetingFormData {
@@ -34,6 +38,7 @@ export interface MeetingFormData {
     requirePassword: boolean
     password: string
     waitingRoomEnabled: boolean
+    courseId: string | null
 }
 
 const PASSWORD_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
@@ -47,6 +52,10 @@ export function generateMeetingPassword(length = 6): string {
 
 export function listOccurrences(from: string, to: string) {
     return http<MeetingOccurrence[]>(`/meetings?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
+}
+
+export function listCourseOccurrences(courseId: string, from: string, to: string) {
+    return http<MeetingOccurrence[]>(`/meetings/course/${courseId}?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`)
 }
 
 export function createMeeting(data: MeetingFormData) {
@@ -67,4 +76,9 @@ export function updateMeeting(id: string, data: MeetingFormData) {
 
 export function deleteMeeting(id: string) {
     return http<void>(`/meetings/${id}`, { method: 'DELETE' })
+}
+
+// Видаляє лише одне проведення повторюваного заняття (start — його початок з розкладу).
+export function deleteOccurrence(meetingId: string, start: string) {
+    return http<void>(`/meetings/${meetingId}/occurrences?start=${encodeURIComponent(start)}`, { method: 'DELETE' })
 }

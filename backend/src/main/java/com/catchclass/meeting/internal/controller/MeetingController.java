@@ -52,6 +52,12 @@ class MeetingController {
         return meetingService.listOccurrences(CurrentUser.require().id(), from, to);
     }
 
+    @GetMapping("/course/{courseId}")
+    List<MeetingOccurrenceResponse> listForCourse(@PathVariable UUID courseId, @RequestParam Instant from,
+                                                   @RequestParam Instant to) {
+        return meetingService.listCourseOccurrences(CurrentUser.require().id(), courseId, from, to);
+    }
+
     @GetMapping("/{id}")
     MeetingResponse get(@PathVariable UUID id) {
         return meetingService.getOwn(id, CurrentUser.require().id());
@@ -60,6 +66,12 @@ class MeetingController {
     @PutMapping("/{id}")
     MeetingResponse update(@PathVariable UUID id, @Valid @RequestBody UpdateMeetingRequest request) {
         return meetingService.update(id, CurrentUser.require().id(), request);
+    }
+
+    @DeleteMapping("/{id}/occurrences")
+    ResponseEntity<Void> deleteOccurrence(@PathVariable UUID id, @RequestParam Instant start) {
+        meetingService.deleteOccurrence(id, CurrentUser.require().id(), start);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")

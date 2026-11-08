@@ -166,3 +166,15 @@ export function TrashIcon(props: SizedIconProps) {
         </Svg>
     )
 }
+
+// Повторюване заняття (контурні стрілки по колу, ~1px).
+export function RepeatIcon(props: SizedIconProps) {
+    return (
+        <Svg strokeWidth={1.1} {...props}>
+            <path d="m17 2 4 4-4 4" />
+            <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+            <path d="m7 22-4-4 4-4" />
+            <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+        </Svg>
+    )
+}

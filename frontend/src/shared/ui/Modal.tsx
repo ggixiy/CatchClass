@@ -10,8 +10,8 @@ interface ModalProps {
 
 export function Modal({ title, onClose, children, wide }: ModalProps) {
     return (
-        <div className="modal-backdrop" onClick={onClose}>
-            <div className={`modal${wide ? ' modal-wide' : ''}`} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-backdrop">
+            <div className={`modal${wide ? ' modal-wide' : ''}`}>
                 <div className="modal-header">
                     <h2>{title}</h2>
                     <button type="button" className="icon-button modal-close" onClick={onClose}>×</button>

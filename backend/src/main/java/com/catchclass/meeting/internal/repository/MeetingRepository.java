@@ -11,4 +11,7 @@ import com.catchclass.meeting.internal.entity.Meeting;
 public interface MeetingRepository extends JpaRepository<Meeting, UUID> {
     Optional<Meeting> findByPublicId(String publicId);
     List<Meeting> findByHostUserId(UUID hostUserId);
+    List<Meeting> findByCourseIdIn(java.util.Collection<UUID> courseIds);
+    List<Meeting> findByCourseId(UUID courseId);
+    void deleteByCourseId(UUID courseId);
 }

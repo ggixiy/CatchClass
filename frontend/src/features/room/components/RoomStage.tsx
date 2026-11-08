@@ -3,12 +3,10 @@ import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
 import { isEqualTrackRef, isTrackReference } from '@livekit/components-core'
 import { RoomEvent, Track } from 'livekit-client'
 import {
-    CarouselLayout,
     ConnectionStateToast,
     ControlBar,
     FocusLayout,
     FocusLayoutContainer,
-    GridLayout,
     LayoutContextProvider,
     ParticipantTile,
     RoomAudioRenderer,
@@ -24,6 +22,7 @@ import { useI18n } from '@/shared/i18n/I18nContext'
 import { ThemeToggle } from '@/shared/ui/ThemeToggle'
 import { LanguageToggle } from '@/shared/ui/LanguageToggle'
 import { ChatIcon, MicLockedIcon, UsersIcon } from '@/shared/ui/icons'
+import { OrderedCarousel, OrderedGrid } from './OrderedLayouts'
 import { HandRaiseButton } from './HandRaiseButton'
 import { ScreenShareRequestButton } from './ScreenShareRequestButton'
 import { LeaveButton } from './LeaveButton'
@@ -237,16 +236,16 @@ export function RoomStage({ isHost, meetingId, title, publicId, waitingRoomEnabl
                     <div className="lk-video-conference-inner">
                         {!focusTrack ? (
                             <div className="lk-grid-layout-wrapper">
-                                <GridLayout tracks={sortedTracks}>
+                                <OrderedGrid tracks={sortedTracks}>
                                     <TypedParticipantTileWithExtras />
-                                </GridLayout>
+                                </OrderedGrid>
                             </div>
                         ) : (
                             <div className="lk-focus-layout-wrapper">
                                 <FocusLayoutContainer>
-                                    <CarouselLayout tracks={carouselTracks}>
+                                    <OrderedCarousel tracks={carouselTracks}>
                                         <TypedParticipantTileWithExtras />
-                                    </CarouselLayout>
+                                    </OrderedCarousel>
                                     {focusTrack && (
                                         <FocusLayout
                                             trackRef={focusTrack}

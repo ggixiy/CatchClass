@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { logout } from '@/features/auth'
 import { ApiError } from '@/shared/api/http'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { deleteMyPhoto, getMyProfile, updateMyProfile, uploadMyPhoto, UserProfile } from '../api/userApi'
@@ -72,6 +73,11 @@ export function ProfilePage() {
         }
     }
 
+    async function handleLogout() {
+        await logout()
+        navigate('/login')
+    }
+
     if (loading) return <main className="page"><p>{t('common.loading')}</p></main>
     if (error && !profile) return <main className="page"><p className="error">{error}</p></main>
     if (!profile) return null
@@ -91,7 +97,7 @@ export function ProfilePage() {
                         onChange={handlePhotoChange}
                         style={{ display: 'none' }}
                     />
-                    <button type="button" onClick={() => fileInputRef.current?.click()}>{t('profile.uploadPhoto')}</button>
+                    <button type="button" className="btn-secondary" onClick={() => fileInputRef.current?.click()}>{t('profile.uploadPhoto')}</button>
                     {profile.photoUrl && <button type="button" onClick={handlePhotoRemove}>{t('common.delete')}</button>}
                 </div>
             </div>
@@ -111,6 +117,7 @@ export function ProfilePage() {
                 </label>
                 <div className="form-actions">
                     <button type="submit" className="btn-primary">{t('common.save')}</button>
+                    <button type="button" className="btn-accent" onClick={handleLogout}>{t('profile.logout')}</button>
                 </div>
             </form>
         </main>

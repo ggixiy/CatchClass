@@ -9,9 +9,12 @@ import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.catchclass.course.CourseApi;
+import com.catchclass.course.CourseDeleted;
 import com.catchclass.meeting.MeetingAccess;
 import com.catchclass.meeting.MeetingApi;
 import com.catchclass.meeting.internal.dto.CreateMeetingRequest;
@@ -30,9 +33,11 @@ public class MeetingService implements MeetingApi {
     private static final String PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // без O/0 та I/1 — легше прочитати
 
     private final MeetingRepository repository;
+    private final CourseApi courseApi;
 
-    public MeetingService(MeetingRepository repository) {
+    public MeetingService(MeetingRepository repository, CourseApi courseApi) {
         this.repository = repository;
+        this.courseApi = courseApi;
     }
 
     // ---- публічний контракт MeetingApi ----
@@ -63,6 +68,21 @@ public class MeetingService implements MeetingApi {
                 .map(this::toAccess);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<MeetingAccess> checkAccess(String publicId, String password, UUID userId) {
+        return repository.findByPublicId(publicId)
+                .filter(m -> m.getPassword() == null || m.getPassword().equals(password)
+                        || (m.getCourseId() != null && courseApi.isMemberOrOwner(m.getCourseId(), userId)))
+                .map(this::toAccess);
+    }
+
+    /** Курс видалено — разом із ним зникають і його заняття. */
+    @ApplicationModuleListener
+    void onCourseDeleted(CourseDeleted event) {
+        repository.deleteByCourseId(event.courseId());
+    }
+
     // ---- для MeetingController ----
 
     @Transactional
@@ -74,6 +94,7 @@ public class MeetingService implements MeetingApi {
         Meeting meeting = new Meeting(UUID.randomUUID(), generateUniquePublicId(), password, hostUserId,
                 request.title(), request.description(), request.startTime(), request.durationMinutes(),
                 request.recurrence(), request.recurrenceEndsAt(), request.waitingRoomEnabled(), false);
+        meeting.assignToCourse(resolveCourse(request.courseId(), hostUserId));
         repository.save(meeting);
         return toResponse(meeting);
     }
@@ -103,6 +124,7 @@ public class MeetingService implements MeetingApi {
         String password = resolvePassword(request.requirePassword(), request.password());
         meeting.update(request.title(), request.description(), request.startTime(), request.durationMinutes(),
                 request.recurrence(), request.recurrenceEndsAt(), password, request.waitingRoomEnabled());
+        meeting.assignToCourse(resolveCourse(request.courseId(), currentUserId));
         return toResponse(meeting);
     }
 
@@ -111,19 +133,66 @@ public class MeetingService implements MeetingApi {
         repository.delete(getOwnedOrThrow(id, currentUserId));
     }
 
-    /** Розгортає всі заняття користувача-хоста на конкретні проведення в межах [from, to]. */
+    /** Видаляє одне проведення серії; для заняття без повторень це те саме, що видалити заняття. */
+    @Transactional
+    public void deleteOccurrence(UUID id, UUID currentUserId, Instant start) {
+        Meeting meeting = getOwnedOrThrow(id, currentUserId);
+        if (meeting.getRecurrenceRule() == RecurrenceRule.NONE) {
+            repository.delete(meeting);
+        } else {
+            meeting.skipOccurrence(start);
+        }
+    }
+
+    /**
+     * Розклад користувача на проміжку [from, to]: його власні заняття (як організатора) плюс заняття
+     * курсів, у яких він учасник. Миттєві зустрічі в календар не потрапляють.
+     */
     @Transactional(readOnly = true)
-    public List<MeetingOccurrenceResponse> listOccurrences(UUID hostUserId, Instant from, Instant to) {
-        return repository.findByHostUserId(hostUserId).stream()
+    public List<MeetingOccurrenceResponse> listOccurrences(UUID userId, Instant from, Instant to) {
+        List<Meeting> all = new java.util.ArrayList<>(repository.findByHostUserId(userId));
+        List<UUID> courseIds = courseApi.findCourseIdsForUser(userId);
+        if (!courseIds.isEmpty()) {
+            repository.findByCourseIdIn(courseIds).stream()
+                    .filter(m -> !m.getHostUserId().equals(userId))
+                    .forEach(all::add);
+        }
+        return expand(all, userId, from, to);
+    }
+
+    /** Розклад одного курсу — для його сторінки; доступний викладачеві та учасникам курсу. */
+    @Transactional(readOnly = true)
+    public List<MeetingOccurrenceResponse> listCourseOccurrences(UUID userId, UUID courseId, Instant from, Instant to) {
+        if (!courseApi.isMemberOrOwner(courseId, userId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "not_course_member", "Ви не учасник цього курсу");
+        }
+        return expand(repository.findByCourseId(courseId), userId, from, to);
+    }
+
+    private List<MeetingOccurrenceResponse> expand(List<Meeting> meetings, UUID viewerId, Instant from, Instant to) {
+        return meetings.stream()
                 .filter(meeting -> !meeting.isInstant())
                 .flatMap(meeting -> MeetingOccurrenceExpander
                         .expand(meeting.getStartTime(), meeting.getDurationMinutes(), meeting.getRecurrenceRule(),
                                 meeting.getRecurrenceEndsAt(), from, to)
                         .stream()
+                        .filter(occ -> !meeting.getSkippedStarts().contains(occ.start()))
                         .map(occ -> new MeetingOccurrenceResponse(meeting.getId(), meeting.getPublicId(),
-                                meeting.getTitle(), occ.start(), occ.end(), meeting.getRecurrenceRule() != RecurrenceRule.NONE)))
-                .sorted((a, b) -> a.startTime().compareTo(b.startTime()))
+                                meeting.getTitle(), occ.start(), occ.end(), meeting.getRecurrenceRule() != RecurrenceRule.NONE,
+                                meeting.getCourseId(), meeting.getHostUserId().equals(viewerId))))
+                .sorted((x, y) -> x.startTime().compareTo(y.startTime()))
                 .toList();
+    }
+
+    /** Заняття можна прив'язати лише до курсу, яким користувач сам керує. */
+    private UUID resolveCourse(UUID courseId, UUID userId) {
+        if (courseId == null) {
+            return null;
+        }
+        if (!courseApi.isOwner(courseId, userId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "not_course_owner", "Це не ваш курс");
+        }
+        return courseId;
     }
 
     // ---- допоміжні методи ----
@@ -218,6 +287,7 @@ public class MeetingService implements MeetingApi {
     private MeetingResponse toResponse(Meeting meeting) {
         return new MeetingResponse(meeting.getId(), meeting.getPublicId(), meeting.getPassword(), meeting.getTitle(),
                 meeting.getDescription(), meeting.getStartTime(), meeting.getDurationMinutes(),
-                meeting.getRecurrenceRule(), meeting.getRecurrenceEndsAt(), meeting.isWaitingRoomEnabled());
+                meeting.getRecurrenceRule(), meeting.getRecurrenceEndsAt(), meeting.isWaitingRoomEnabled(),
+                meeting.getCourseId());
     }
 }

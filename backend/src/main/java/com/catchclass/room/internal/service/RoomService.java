@@ -84,7 +84,7 @@ public class RoomService implements RoomApi {
      * кімната очікування, інакше ставить його у чергу на допуск.
      */
     public RoomStatusResponse join(UUID currentUserId, String publicId, String password) {
-        MeetingAccess meeting = meetingApi.checkAccess(publicId, password)
+        MeetingAccess meeting = meetingApi.checkAccess(publicId, password, currentUserId)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "invalid_meeting_credentials",
                         "Неправильний Meeting ID або пароль"));
 

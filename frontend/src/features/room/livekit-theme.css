@@ -138,6 +138,20 @@
 .lk-carousel {
   gap: 0.5rem;
 }
+/* Мініатюри збоку: невеликі плитки зі стабільним співвідношенням сторін, кожна — не вища за третину
+   екрана (раніше одна плитка могла розтягнутись на всю висоту). */
+.lk-focus-layout .lk-carousel[data-lk-orientation='vertical'] {
+  overflow-y: auto; overflow-x: hidden; align-content: flex-start;
+}
+.lk-focus-layout .lk-carousel[data-lk-orientation='vertical'] > * {
+  flex: none; width: 100%; height: auto; aspect-ratio: 16 / 10; max-height: 33vh;
+}
+.lk-focus-layout .lk-carousel[data-lk-orientation='horizontal'] {
+  overflow-x: auto; overflow-y: hidden;
+}
+.lk-focus-layout .lk-carousel[data-lk-orientation='horizontal'] > * {
+  flex: none; width: auto; height: min(33vh, 10rem); aspect-ratio: 16 / 10;
+}
 
 .lk-participant-name {
   font-family: var(--lk-font-family);

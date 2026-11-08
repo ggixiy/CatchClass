@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Select } from '@/shared/ui/Select'
 import { useI18n } from '@/shared/i18n/I18nContext'
 
 interface DeviceSelectProps {
@@ -29,16 +30,11 @@ export function DeviceSelect({ kind, value, onChange }: DeviceSelectProps) {
     const label = kind === 'videoinput' ? t('device.camera') : t('device.microphone')
 
     return (
-        <select
+        <Select
             className="device-select"
             value={value ?? devices[0]?.deviceId ?? ''}
-            onChange={(e) => onChange(e.target.value)}
-        >
-            {devices.map((d, i) => (
-                <option key={d.deviceId || i} value={d.deviceId}>
-                    {d.label || `${label} ${i + 1}`}
-                </option>
-            ))}
-        </select>
+            onChange={onChange}
+            options={devices.map((d, i) => ({ value: d.deviceId, label: d.label || `${label} ${i + 1}` }))}
+        />
     )
 }

@@ -146,13 +146,13 @@ a { color: var(--pink-strong); font-weight: 500; }
 }
 .page > h1, .page-media > h1 { margin-bottom: 0; }
 .page {
-  max-width: 28rem; margin: 4rem auto; padding: 2.5rem 2.25rem;
+  max-width: 28rem; margin: 1.5rem auto; padding: 2.5rem 2.25rem;
 }
 .page-media {
-  max-width: 38rem; margin: 3rem auto; padding: 2.5rem 2.25rem;
+  max-width: 38rem; margin: 1.5rem auto; padding: 2.5rem 2.25rem;
 }
 .page-wide {
-  max-width: 68rem; margin: 2rem auto; padding: 0 1.25rem 2.5rem;
+  max-width: 68rem; margin: 1rem auto; padding: 0 1.25rem 1rem;
 }
 
 @media (min-width: 90rem) {
@@ -290,7 +290,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 /* ---------- головна / дашборд ---------- */
 
 .home-header {
-  display: flex; justify-content: space-between; align-items: center; margin: 1.75rem 0 1.5rem; gap: 1rem; flex-wrap: wrap;
+  display: flex; justify-content: space-between; align-items: center; margin: 0.75rem 0 1.25rem; gap: 1rem; flex-wrap: wrap;
 }
 .home-header h1 { margin: 0; }
 .home-header a {
@@ -688,7 +688,7 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 .site-header-actions { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
 .site-header-actions .theme-toggle { width: 2.4rem; height: 2.4rem; font-size: 1.05rem; box-shadow: none; }
 
-.site-footer { background: var(--surface); border-top: 1px solid var(--border); margin-top: 3rem; }
+.site-footer { background: var(--surface); border-top: 1px solid var(--border); margin-top: 1rem; }
 .site-footer-inner {
   max-width: 84rem; margin: 0 auto; padding: 2.25rem 1.25rem 1.5rem;
   display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2.5rem;
@@ -722,7 +722,7 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 .stacked-form > button { min-width: 0; max-width: 100%; }
 
 /* Сторінки з формою (вхід, реєстрація, профіль...) центруються по вертикалі між шапкою й футером. */
-.app-content { display: flex; flex-direction: column; padding: 1.5rem 0; }
+.app-content { display: flex; flex-direction: column; padding: 0.5rem 0; }
 .app-content > .page, .app-content > .page-media {
   width: 100%; margin-top: auto; margin-bottom: auto; margin-left: auto; margin-right: auto;
 }
@@ -736,3 +736,94 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 .page > p:has(> a:only-child) + p:has(> a:only-child) { margin-top: -0.65rem; }
 .page form { margin-bottom: 0; }
 .page form > button { max-width: 100%; }
+
+/* ---------- курси ---------- */
+.course-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.course-card {
+  display: flex; flex-direction: column; gap: 0.3rem; padding: 1rem 1.2rem; text-decoration: none; color: var(--text);
+  background: var(--surface-2); border-radius: var(--radius-md); border: 1.5px solid transparent;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.course-card:hover { border-color: var(--pink-strong); background: var(--pink-soft); }
+.course-card strong { font-family: var(--font-display); font-size: 1.05rem; }
+.course-card-desc { color: var(--muted); font-size: 0.9rem; }
+.course-card-meta { color: var(--muted); font-size: 0.82rem; }
+.course-members { list-style: none; margin: 0 0 1rem; padding: 0; display: flex; flex-direction: column; gap: 0.8rem; }
+.course-members li { display: flex; align-items: center; gap: 0.8rem; }
+.course-members .avatar { width: 40px; height: 40px; border-width: 2px; }
+.course-member-name { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.course-member-name small { color: var(--muted); }
+.meeting-course-tag {
+  margin-left: 0.6rem; padding: 0.15rem 0.55rem; border-radius: var(--radius-pill);
+  background: var(--pink-soft); color: var(--pink-strong); font-size: 0.75rem; font-weight: 600;
+}
+.course-lesson { cursor: default; }
+
+/* ---------- правки інтерфейсу: ширина, списки, чекбокси, випадаючі списки ---------- */
+/* У flex-колонці margin:auto стискає блок до вмісту — тримаємо повну ширину для широких сторінок. */
+.app-content > .page-wide { width: 100%; }
+
+/* Чекбокс: маленький квадрат ліворуч і підпис поруч, а не розтягнутий на весь рядок. */
+.stacked-form label.checkbox-row {
+  flex-direction: row; align-items: center; gap: 0.65rem; width: fit-content; max-width: 100%;
+  margin: 0; padding: 0.35rem 0.5rem; color: var(--text); font-size: 0.92rem; font-weight: 500;
+}
+.stacked-form input[type='checkbox'] { width: 1.2rem; height: 1.2rem; flex: none; }
+
+/* Випадаючий список у стилі застосунку */
+.select-field { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; font-size: 0.88rem; color: var(--muted); font-weight: 500; }
+.select-wrap { position: relative; }
+.select-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; text-align: left;
+  padding: 0.6rem 0.85rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font-family: var(--font-body); font-weight: 400; font-size: 0.95rem;
+}
+.select-trigger:hover:not(:disabled) { border-color: var(--pink-strong); background: var(--surface); }
+.select-trigger[aria-expanded='true'] { border-color: var(--pink-strong); box-shadow: 0 0 0 3px var(--pink-soft); }
+.select-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.select-chevron { flex: none; color: var(--muted); transition: transform 120ms ease; }
+.select-trigger[aria-expanded='true'] .select-chevron { transform: rotate(180deg); }
+.select-list {
+  position: absolute; z-index: 30; top: calc(100% + 0.35rem); left: 0; right: 0; margin: 0; padding: 0.3rem;
+  list-style: none; max-height: 15rem; overflow-y: auto;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+}
+.select-option { padding: 0.55rem 0.75rem; border-radius: var(--radius-sm); cursor: pointer; color: var(--text); font-weight: 400; }
+.select-option.active { background: var(--surface-2); }
+.select-option.selected { background: var(--pink-soft); color: var(--pink-strong); font-weight: 600; }
+.select-field.device-select { flex: 1 1 14rem; max-width: 20rem; }
+
+/* Курси: просторіші блоки */
+.card.card-lg { padding: 2rem 2.25rem; }
+.card.card-lg h2 { margin-bottom: 1.1rem; }
+.card.join-card.card-lg { padding: 2.5rem 2.25rem; }
+.course-list { gap: 1rem; }
+.course-card { padding: 1.25rem 1.5rem; }
+
+/* Список занять курсу: вищі рядки з внутрішніми відступами */
+.lesson-list { max-height: none; gap: 0.85rem; }
+.lesson-list .meeting-list-item { padding: 0.9rem 1rem 0.9rem 1.25rem; gap: 1rem; }
+.lesson-list .meeting-list-open { padding: 0; white-space: normal; line-height: 1.4; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.recurring-icon { color: var(--pink-strong); flex: none; vertical-align: middle; margin-left: 0.4rem; }
+
+/* Кнопки в рядках: однакова висота (2.5rem), іконки в одному стилі */
+.meeting-list-actions { align-items: center; gap: 0.6rem; padding-right: 0; }
+.meeting-list-actions button { height: 2.5rem; display: inline-flex; align-items: center; justify-content: center; padding-top: 0; padding-bottom: 0; }
+.meeting-list-actions .icon-button { width: 2.5rem; height: 2.5rem; font-size: 1rem; padding: 0; }
+.meeting-list:not(.lesson-list) .meeting-list-item { padding: 0.3rem 0.5rem 0.3rem 0; }
+
+/* Блок запрошення студентів: щільніше */
+.invite-card { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.75rem 2.25rem; }
+.invite-card h2, .invite-card p { margin: 0; }
+.invite-card .form-actions { gap: 0.6rem; }
+
+/* Кнопка профілю в шапці */
+.profile-chip {
+  display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.25rem 0.9rem 0.25rem 0.3rem; border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--text); text-decoration: none;
+  font-family: var(--font-display); font-weight: 600; font-size: 0.9rem; max-width: 14rem;
+}
+.profile-chip:hover { border-color: var(--pink-strong); background: var(--pink-soft); }
+.profile-chip .avatar { width: 32px; height: 32px; border-width: 2px; flex: none; font-size: 0.85rem; }
+.profile-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 40rem) { .profile-chip-name { display: none; } .profile-chip { padding-right: 0.3rem; } }

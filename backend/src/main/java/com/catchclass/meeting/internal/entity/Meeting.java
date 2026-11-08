@@ -3,7 +3,14 @@ package com.catchclass.meeting.internal.entity;
 import java.time.Instant;
 import java.util.UUID;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -54,6 +61,17 @@ public class Meeting {
     @Column(nullable = false)
     private boolean instant;
 
+    // Курс, якому належить заняття (null — звичайне заняття без курсу).
+    @Column(name = "course_id")
+    private UUID courseId;
+
+    // Початки проведень серії, які видалили поодинці (решта серії лишається).
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "meeting_skipped_occurrences", schema = "meetings",
+            joinColumns = @JoinColumn(name = "meeting_id"))
+    @Column(name = "start_time", nullable = false)
+    private Set<Instant> skippedStarts = new HashSet<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -89,7 +107,21 @@ public class Meeting {
         this.recurrenceEndsAt = recurrenceEndsAt;
         this.password = password;
         this.waitingRoomEnabled = waitingRoomEnabled;
+        // Розклад міг змінитись — старі винятки вже не відповідають новим датам.
+        this.skippedStarts.clear();
     }
+
+    public void skipOccurrence(Instant start) {
+        this.skippedStarts.add(start);
+    }
+
+    public Set<Instant> getSkippedStarts() { return skippedStarts; }
+
+    public void assignToCourse(UUID courseId) {
+        this.courseId = courseId;
+    }
+
+    public UUID getCourseId() { return courseId; }
 
     public void changeWaitingRoom(boolean enabled) {
         this.waitingRoomEnabled = enabled;

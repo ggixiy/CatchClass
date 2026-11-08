@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { logout } from '@/features/auth'
+import { getMyProfile, UserProfile } from '@/features/user'
 import { tokenStore } from '@/shared/api/tokenStore'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { LanguageToggle } from '@/shared/ui/LanguageToggle'
+import { Avatar } from '@/shared/ui/Avatar'
 import { Logo } from '@/shared/ui/Logo'
 import { ThemeToggle } from '@/shared/ui/ThemeToggle'
 
@@ -14,12 +16,15 @@ export function AppLayout() {
     const navigate = useNavigate()
     const loggedIn = tokenStore.getAccessToken() !== null
 
-    if (pathname.startsWith('/room/')) return <Outlet />
+    const [profile, setProfile] = useState<UserProfile | null>(null)
 
-    async function handleLogout() {
-        await logout()
-        navigate('/login')
-    }
+    // Профіль для кнопки в шапці; оновлюємо при зміні сторінки (наприклад, після нового фото).
+    useEffect(() => {
+        if (!loggedIn || pathname.startsWith('/room/')) return
+        getMyProfile().then(setProfile).catch(() => setProfile(null))
+    }, [loggedIn, pathname])
+
+    if (pathname.startsWith('/room/')) return <Outlet />
 
     return (
         <div className="app-shell">
@@ -33,7 +38,7 @@ export function AppLayout() {
                     {loggedIn && (
                         <nav className="site-nav" aria-label={t('layout.navLabel')}>
                             <NavLink to="/" end>{t('layout.home')}</NavLink>
-                            <NavLink to="/profile">{t('layout.account')}</NavLink>
+                            <NavLink to="/courses">{t('layout.courses')}</NavLink>
                         </nav>
                     )}
 
@@ -41,7 +46,12 @@ export function AppLayout() {
                         <LanguageToggle />
                         <ThemeToggle />
                         {loggedIn
-                            ? <button type="button" className="btn-accent" onClick={handleLogout}>{t('layout.logout')}</button>
+                            ? (
+                                <Link to="/profile" className="profile-chip" title={t('layout.account')}>
+                                    <Avatar size={32} photoUrl={profile?.photoUrl ?? null} displayName={profile?.displayName || '?'} />
+                                    <span className="profile-chip-name">{profile?.displayName ?? t('layout.account')}</span>
+                                </Link>
+                            )
                             : <button type="button" className="btn-primary" onClick={() => navigate('/login')}>{t('layout.login')}</button>}
                     </div>
                 </div>

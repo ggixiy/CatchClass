@@ -20,6 +20,7 @@ public record UpdateMeetingRequest(
         Instant recurrenceEndsAt,
         boolean requirePassword,
         @Size(max = 20) String password,
-        boolean waitingRoomEnabled
+        boolean waitingRoomEnabled,
+        UUID courseId // null — заняття без курсу
 ) {
 }
