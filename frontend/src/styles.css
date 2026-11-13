@@ -3,12 +3,12 @@
    Один пастельний акцент — Baby Pink — замість двох конкуруючих кольорів.
    Світла/темна основа майже монохромна, рожевий зʼявляється точково:
    виділення, фокус, статуси, і (у темній темі) більшість кнопок.
-   Manrope для заголовків/кнопок, Inter для основного тексту.
+   Onest (чудова кирилиця) для заголовків і тексту, Playfair Display — лише курсивний акцент на лендінгу.
    ========================================================================= */
 
 :root {
-  --font-display: 'Manrope', system-ui, -apple-system, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Onest', system-ui, -apple-system, sans-serif;
+  --font-body: 'Onest', system-ui, -apple-system, sans-serif;
   --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
   /* світла тема */
@@ -136,6 +136,11 @@ p { line-height: 1.55; }
 a { color: var(--pink-strong); font-weight: 500; }
 
 /* ---------- контейнери сторінок ---------- */
+/* Максимальна ширина контенту росте разом із вікном, щоб на великих моніторах не лишалось надто багато порожнього місця. */
+:root { --content-max: 68rem; }
+@media (min-width: 90rem)  { :root { --content-max: 78rem; } }
+@media (min-width: 110rem) { :root { --content-max: 88rem; } }
+@media (min-width: 135rem) { :root { --content-max: 96rem; } }
 /* flex-колонка з gap замість ручних margin — рівномірне "повітря" між
    усіма прямими дітьми (заголовок, форма, посилання...) само собою. */
 
@@ -152,12 +157,10 @@ a { color: var(--pink-strong); font-weight: 500; }
   max-width: 38rem; margin: 1.5rem auto; padding: 2.5rem 2.25rem;
 }
 .page-wide {
-  max-width: 68rem; margin: 1rem auto; padding: 0 1.25rem 1rem;
+  max-width: var(--content-max); margin: 1rem auto; padding: 0 1.25rem 1rem;
 }
 
-@media (min-width: 90rem) {
-  .page-wide { max-width: 84rem; }
-}
+
 
 @media (max-width: 40rem) {
   .page-media { margin: 1.5rem auto; padding: 1.75rem 1.25rem; border-radius: var(--radius-md); }
@@ -372,7 +375,7 @@ button.btn-primary.card-cta:hover:not(:disabled) { background: var(--pink); colo
 /* ---------- модальні вікна ---------- */
 
 .modal-backdrop {
-  position: fixed; inset: 0; background: rgba(20, 15, 25, 0.45); backdrop-filter: blur(3px);
+  position: fixed; inset: 0; background: rgba(20, 15, 25, 0.5);
   display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem;
 }
 .modal {
@@ -672,7 +675,7 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
   border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm);
 }
 .site-header-inner {
-  max-width: 84rem; margin: 0 auto; padding: 0.7rem 1.25rem;
+  max-width: var(--content-max); margin: 0 auto; padding: 0.7rem 1.25rem;
   display: flex; align-items: center; gap: 1.5rem;
 }
 .site-brand { display: inline-flex; align-items: center; gap: 0.65rem; text-decoration: none; color: var(--text); }
@@ -690,7 +693,7 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 
 .site-footer { background: var(--surface); border-top: 1px solid var(--border); margin-top: 1rem; }
 .site-footer-inner {
-  max-width: 84rem; margin: 0 auto; padding: 2.25rem 1.25rem 1.5rem;
+  max-width: var(--content-max); margin: 0 auto; padding: 2.25rem 1.25rem 1.5rem;
   display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2.5rem;
 }
 .site-footer-about p { margin: 0.8rem 0 0; color: var(--muted); font-size: 0.9rem; max-width: 24rem; line-height: 1.5; }
@@ -699,7 +702,7 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 .site-footer-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
 .site-footer-col a:hover { color: var(--pink-strong); }
 .site-footer-bottom {
-  max-width: 84rem; margin: 0 auto; padding: 1rem 1.25rem 1.5rem; border-top: 1px solid var(--border);
+  max-width: var(--content-max); margin: 0 auto; padding: 1rem 1.25rem 1.5rem; border-top: 1px solid var(--border);
   display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; color: var(--muted); font-size: 0.82rem;
 }
 @media (max-width: 48rem) {
@@ -776,7 +779,7 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 .select-trigger {
   width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; text-align: left;
   padding: 0.6rem 0.85rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-  background: var(--surface); color: var(--text); font-family: var(--font-body); font-weight: 400; font-size: 0.95rem;
+  background: var(--surface); color: var(--text); font-family: var(--font-body); font-weight: 400; font-size: 0.88rem;
 }
 .select-trigger:hover:not(:disabled) { border-color: var(--pink-strong); background: var(--surface); }
 .select-trigger[aria-expanded='true'] { border-color: var(--pink-strong); box-shadow: 0 0 0 3px var(--pink-soft); }
@@ -784,11 +787,11 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 .select-chevron { flex: none; color: var(--muted); transition: transform 120ms ease; }
 .select-trigger[aria-expanded='true'] .select-chevron { transform: rotate(180deg); }
 .select-list {
-  position: absolute; z-index: 30; top: calc(100% + 0.35rem); left: 0; right: 0; margin: 0; padding: 0.3rem;
+  position: fixed; z-index: 300; margin: 0; padding: 0.3rem; box-sizing: border-box;
   list-style: none; max-height: 15rem; overflow-y: auto;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
 }
-.select-option { padding: 0.55rem 0.75rem; border-radius: var(--radius-sm); cursor: pointer; color: var(--text); font-weight: 400; }
+.select-option { font-size: 0.88rem; padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); cursor: pointer; color: var(--text); font-weight: 400; }
 .select-option.active { background: var(--surface-2); }
 .select-option.selected { background: var(--pink-soft); color: var(--pink-strong); font-weight: 600; }
 .select-field.device-select { flex: 1 1 14rem; max-width: 20rem; }
@@ -827,3 +830,463 @@ button.btn-primary.schedule-cta:hover:not(:disabled) { background: var(--pink); 
 .profile-chip .avatar { width: 32px; height: 32px; border-width: 2px; flex: none; font-size: 0.85rem; }
 .profile-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 40rem) { .profile-chip-name { display: none; } .profile-chip { padding-right: 0.3rem; } }
+
+/* ---- Дашборд курсу й журнал відвідуваності ---- */
+.nav-back {
+  display: inline-flex; align-items: center; margin: 1.5rem 0 1.75rem; padding: 0.55rem 1.1rem; font-weight: 500;
+  color: var(--ink); text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+}
+.nav-back:hover { border-color: var(--pink-strong); color: var(--pink-strong); }
+.dash-head { margin-bottom: 1.75rem; }
+.dash-head h1 { margin: 0 0 0.2rem; }
+.dash-head .hint { margin: 0; }
+.dash-columns { align-items: stretch; }
+.dash-columns > .home-column > .card { flex: 1; }
+.card.dash-card h2 { margin-bottom: 0.25rem; }
+.card.dash-card > .hint { margin: 0 0 1.5rem; }
+.dash-empty { margin: 0; color: var(--muted); }
+.dash-lessons { margin-top: 0; }
+.card.dash-stat--pink { background: var(--pink-soft); border-color: transparent; box-shadow: none; }
+.card.dash-stat--ink { background: color-mix(in srgb, var(--ink) 68%, transparent); border-color: transparent; box-shadow: none; color: var(--surface); }
+.dash-stat--ink .dash-stat-value, .dash-stat--ink .hint { color: var(--surface); }
+.card.dash-stat--pink, .card.dash-stat--pink .dash-stat-value, .dash-stat--pink .hint { color: var(--ink); }
+.dash-stat--pink .hint { opacity: 0.8; }
+.dash-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.5rem; margin-bottom: 1.75rem; }
+.card.dash-stat { display: flex; flex-direction: column; gap: 0.6rem; padding: 1.75rem 2rem; box-shadow: var(--shadow-sm); }
+.dash-stat-value { font-size: 2.25rem; font-weight: 600; color: var(--pink-strong); line-height: 1.1; }
+.dash-lessons { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; }
+.dash-lessons li { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 1rem 0; border-top: 1px solid var(--border); }
+.dash-lessons li:first-child { border-top: 0; padding-top: 0; }
+.dash-lesson-main { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+.dash-bar-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; min-width: 9rem; }
+.dash-bar { width: 9rem; height: 8px; border-radius: 4px; background: var(--pink-soft); overflow: hidden; }
+.dash-bar span { display: block; height: 100%; background: var(--pink-strong); border-radius: 4px; }
+.dash-status-live { background: var(--pink-soft); color: var(--pink-strong); }
+.dash-link-card { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; }
+.dash-link-card h2 { margin-bottom: 0.4rem; }
+.dash-link-card p { margin: 0; }
+@media (max-width: 900px) { .dash-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .dash-link-card { flex-direction: column; align-items: stretch; } }
+
+/* ---- Реакції й опитування в кімнаті ---- */
+.reactions-wrap { position: relative; display: inline-flex; }
+.reactions-menu {
+  position: absolute; top: calc(100% + 0.5rem); left: 0; z-index: 80; min-width: 13rem;
+  background: var(--surface); border: 1px solid var(--pink); border-radius: 14px; padding: 0.6rem;
+  display: flex; flex-direction: column; gap: 0.5rem; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.reactions-emojis, .reactions-answers { display: flex; gap: 0.4rem; }
+.reactions-answers button { flex: 1; }
+.reaction-emoji { font-size: 1.35rem; line-height: 1; padding: 0.35rem 0.55rem; }
+.reactions-float { position: fixed; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; }
+.reaction-bubble {
+  position: absolute; bottom: 6rem; display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+  animation: reaction-rise 4s ease-out forwards;
+}
+.reaction-bubble-emoji { font-size: 2.4rem; line-height: 1; }
+.reaction-bubble-name {
+  font-size: 0.75rem; padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--pink);
+}
+@keyframes reaction-rise {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(-55vh); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .reaction-bubble { animation-duration: 4s; animation-name: none; bottom: 50%; } }
+.answers-tally {
+  position: fixed; top: 4.2rem; left: 50%; transform: translateX(-50%); z-index: 85;
+  display: flex; align-items: center; gap: 1rem; padding: 0.45rem 1rem; border-radius: 999px;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--pink);
+}
+.answers-tally button { padding: 0.15rem 0.6rem; font-size: 0.8rem; }
+
+.poll-panel {
+  position: fixed; right: 1.25rem; bottom: 6rem; z-index: 85; width: min(24rem, calc(100vw - 2.5rem));
+  background: var(--surface); color: var(--ink); border: 1px solid var(--pink); border-radius: 16px;
+  padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+}
+.has-sidebar .poll-panel { right: calc(var(--sidebar-w) + 1.25rem); }
+.poll-panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+.poll-min { padding: 0 0.6rem; line-height: 1.4; }
+.poll-options { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.poll-option {
+  position: relative; overflow: hidden; width: 100%; display: flex; justify-content: space-between; align-items: center;
+  gap: 0.75rem; text-align: left; padding: 0.6rem 0.8rem; border-radius: 10px;
+}
+.poll-option.is-mine { border-color: var(--pink-strong); }
+.poll-option.is-correct { border-color: #3a9d6a; }
+.poll-fill { position: absolute; inset: 0 auto 0 0; background: var(--pink-soft); z-index: 0; transition: width 0.3s; }
+.poll-option.is-correct .poll-fill { background: rgba(58,157,106,0.2); }
+.poll-option-text, .poll-option-count { position: relative; z-index: 1; }
+.poll-option-count { font-size: 0.8rem; white-space: nowrap; }
+.poll-voters { display: block; margin-top: 0.15rem; color: var(--muted, #6f6a7a); }
+.poll-foot { display: flex; flex-direction: column; gap: 0.4rem; }
+.poll-host-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.poll-right { color: #3a9d6a; }
+.poll-wrong { color: #c0392b; }
+.poll-chip {
+  position: fixed; right: 1.25rem; bottom: 6rem; z-index: 85; display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.poll-backdrop {
+  position: fixed; inset: 0; z-index: 110; display: flex; align-items: center; justify-content: center;
+  background: rgba(20,16,26,0.45); padding: 1rem;
+}
+.poll-dialog {
+  width: min(30rem, 100%); background: var(--surface); color: var(--ink); border-radius: 18px; padding: 1.5rem;
+  display: flex; flex-direction: column; gap: 0.9rem; max-height: 90vh; overflow-y: auto;
+}
+.poll-dialog h2 { margin: 0; }
+.poll-dialog input:not([type='checkbox']):not([type='radio']) { width: 100%; }
+.poll-create-options { display: flex; flex-direction: column; gap: 0.5rem; }
+.poll-create-row { display: flex; align-items: center; gap: 0.5rem; }
+
+/* Заняття курсу: текст займає вільне місце, кнопки вирівняні праворуч в одну колонку */
+.lesson-list .course-lesson { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem; white-space: normal; }
+.recurring-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.15rem 0.6rem; border-radius: 999px;
+  background: var(--pink-soft); color: var(--pink-strong); font-size: 0.78rem; font-weight: 500; white-space: nowrap;
+}
+
+/* Кнопка «Миттєва зустріч»: пілюля з одним рівнем градієнтної обводки — темно-рожева зверху й знизу, світла по боках */
+button.btn-primary.card-cta,
+button.btn-primary.card-cta:hover:not(:disabled) {
+  border-radius: 999px; font-weight: 600; color: #fff; box-shadow: none; text-shadow: none;
+  border: 2px solid transparent;
+  background:
+    radial-gradient(ellipse at center, var(--pink-strong) 0%, color-mix(in srgb, var(--pink) 80%, var(--pink-strong)) 55%, color-mix(in srgb, var(--pink) 55%, #fff) 100%) padding-box,
+    radial-gradient(ellipse at center, color-mix(in srgb, var(--pink-strong) 85%, #000) 0%, color-mix(in srgb, var(--pink-strong) 85%, #000) 45%, color-mix(in srgb, var(--pink) 40%, #fff) 100%) border-box;
+}
+button.btn-primary.card-cta:hover:not(:disabled) { filter: brightness(1.05); }
+
+/* Картки курсів: м'який рожевий фон замість сірого, наведення — трохи насиченіше */
+.course-card { background: var(--pink-soft); border-color: transparent; }
+.course-card:hover { background: color-mix(in srgb, var(--pink) 30%, var(--pink-soft)); border-color: var(--pink-strong); }
+
+/* Найближчі заняття курсу: рожевий фон, як у карток курсів; плашка повторюваності — біла, щоб не зливалась */
+.lesson-list .meeting-list-item { background: var(--pink-soft); }
+.lesson-list .recurring-badge { background: var(--surface); border: 1px solid var(--pink); }
+
+/* Видалення заняття в списку курсу — у стилі плашки повторюваності: біла основа з тонкою рожевою рамкою */
+.lesson-list .icon-button {
+  background: var(--surface); border: 1px solid var(--pink); border-radius: 999px; padding: 0.5rem;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.lesson-list .icon-button:hover:not(:disabled) { border-color: var(--pink-strong); background: var(--surface); }
+
+/* Вибір дати й часу в стилі випадаючого списку */
+.dtp-popover {
+  position: fixed; z-index: 300; width: 24rem; max-width: calc(100vw - 2rem); padding: 0.9rem;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+  display: flex; flex-direction: column; gap: 0.75rem; color: var(--text); font-weight: 400;
+}
+.dtp-month { white-space: nowrap; }
+.dtp-head { display: flex; align-items: center; justify-content: space-between; }
+.dtp-month { font-size: 0.95rem; }
+.dtp-nav { padding: 0.15rem 0.7rem; border-radius: 999px; font-size: 1.1rem; line-height: 1.2; }
+.dtp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.1rem; text-align: center; }
+.dtp-weekday { font-size: 0.72rem; color: var(--muted); padding-bottom: 0.2rem; }
+button.dtp-day {
+  padding: 0.25rem 0; border: 1.5px solid transparent; border-radius: 999px; background: none; color: var(--text); font-weight: 400; font-size: 0.88rem;
+}
+button.dtp-day:hover:not(:disabled) { background: var(--surface-2); border-color: transparent; box-shadow: none; }
+button.dtp-day.today { border-color: var(--pink); }
+button.dtp-day.selected { background: var(--pink-soft); color: var(--pink-strong); border-color: var(--pink-strong); font-weight: 600; }
+.dtp-body { display: flex; gap: 1rem; align-items: stretch; }
+.dtp-calendar { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.dtp-side { display: flex; flex-direction: column; gap: 0.6rem; }
+.dtp-time { flex: 1 1 0; min-height: 0; display: flex; align-items: stretch; gap: 0.25rem; }
+.dtp-colon { align-self: center; }
+.dtp-col { display: flex; flex-direction: column; gap: 0.15rem; overflow-y: auto; padding: 0.15rem; width: 3rem; scrollbar-width: thin; scrollbar-color: var(--pink) transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+button.dtp-opt { padding: 0.3rem 0; border: 0; border-radius: var(--radius-sm); background: none; color: var(--text); font-weight: 400; font-size: 0.9rem; }
+button.dtp-opt:hover:not(:disabled) { background: var(--surface-2); box-shadow: none; }
+button.dtp-opt.selected { background: var(--pink-soft); color: var(--pink-strong); font-weight: 600; }
+.dtp-foot { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+/* Перевірка пристроїв: кнопки й списки однакової ширини двома рівними колонками, рядки ближче один до одного */
+.device-row { display: grid; grid-template-columns: 11rem minmax(0, 1fr); align-items: stretch; gap: 0.75rem; margin-bottom: 0; }
+.device-row > button { width: 100%; }
+.device-row .select-field.device-select { max-width: none; flex: none; }
+.device-row .select-trigger { height: 100%; }
+.device-row + .device-row { margin-top: -0.6rem; }
+@media (max-width: 40rem) { .device-row { grid-template-columns: 1fr; } }
+
+.device-row > button { padding: 0.5rem 0.9rem; font-size: 0.9rem; }
+
+/* ---- Лендінг для гостя ---- */
+:root[data-theme='dark'] .landing-hero {
+  --lp-0: #5a2d46; --lp-1: #3c2535; --lp-2: #261c25;
+  --lp-fg: #fff; --lp-fg-soft: rgba(255, 255, 255, 0.8); --lp-em: var(--pink); --lp-tshadow: 0 2px 18px rgba(42, 20, 40, 0.5);
+  --lp-btn-bg: #fff; --lp-btn-fg: #16141c; --lp-glass-bg: rgba(255, 255, 255, 0.14); --lp-glass-fg: #fff; --lp-glass-border: rgba(255, 255, 255, 0.22);
+  --lp-badge-bg: rgba(255, 255, 255, 0.12); --lp-badge-border: rgba(255, 255, 255, 0.18);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .landing-hero {
+  --lp-0: #5a2d46; --lp-1: #3c2535; --lp-2: #261c25;
+  --lp-fg: #fff; --lp-fg-soft: rgba(255, 255, 255, 0.8); --lp-em: var(--pink); --lp-tshadow: 0 2px 18px rgba(42, 20, 40, 0.5);
+  --lp-btn-bg: #fff; --lp-btn-fg: #16141c; --lp-glass-bg: rgba(255, 255, 255, 0.14); --lp-glass-fg: #fff; --lp-glass-border: rgba(255, 255, 255, 0.22);
+  --lp-badge-bg: rgba(255, 255, 255, 0.12); --lp-badge-border: rgba(255, 255, 255, 0.18);
+} }
+.landing-main { flex: 1; min-height: 0; display: flex; flex-direction: column; margin: 0.75rem auto; padding-bottom: 0; }
+.app-shell:has(.landing-main) .site-footer { margin-top: 0; }
+/* Лендінг заповнює простір між шапкою й футером; якщо контенту не вистачає місця — з'являється прокрутка */
+.app-shell:has(.landing-main) .app-content { min-height: 0; }
+.landing-grain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; mix-blend-mode: soft-light; opacity: 0.8; }
+.landing-hero {
+  /* світла тема: темно-рожевий у куті → світло-рожевий, чорний текст */
+  --lp-0: #e18bb0; --lp-1: #eba9c6; --lp-2: #f6d3e2;
+  --lp-fg: #16141c; --lp-fg-soft: rgba(22, 20, 28, 0.78); --lp-em: #8a2656; --lp-tshadow: none;
+  --lp-btn-bg: #16141c; --lp-btn-fg: #fff; --lp-glass-bg: rgba(255, 255, 255, 0.38); --lp-glass-fg: #16141c; --lp-glass-border: rgba(22, 20, 28, 0.25);
+  --lp-badge-bg: rgba(255, 255, 255, 0.4); --lp-badge-border: rgba(22, 20, 28, 0.18);
+  --r: clamp(34rem, 108vh, 92rem); /* діаметр найбільшого кола — підлаштовується під висоту екрана */
+  position: relative; flex: 1; min-height: 31rem; overflow: hidden; isolation: isolate; display: flex; align-items: flex-end;
+  border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 3.5rem; background: var(--surface);
+}
+/* 1. Круглий градієнт із центром у лівому нижньому куті: від насиченого до світлого, не на весь фон */
+.landing-hero::before {
+  content: ''; position: absolute; inset: -3rem; z-index: -4; filter: blur(36px);
+  background: radial-gradient(circle clamp(24rem, 62vh, 46rem) at 0% 100%, var(--lp-0) 0%, var(--lp-1) 22%, var(--lp-2) 46%, color-mix(in srgb, var(--pink) 18%, transparent) 70%, transparent 100%);
+}
+/* 3. Ефект скла: дрібні вертикальні рифлення, зерно й ледь помітний блиск */
+.landing-glass {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(255,255,255,0.14) 0%, transparent 35%, rgba(255,255,255,0.06) 70%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 2px, rgba(0,0,0,0.07) 2px 6px);
+  mix-blend-mode: soft-light;
+}
+/* 4. Три кола з рисками — зверху всього, у правому нижньому куті */
+.landing-rings { position: absolute; z-index: -2; width: var(--r); height: var(--r); right: calc(var(--r) / -2); bottom: calc(var(--r) / -2); pointer-events: none; }
+.ring { position: absolute; border-radius: 50%; }
+.ring-1 { inset: 0;   background: color-mix(in srgb, var(--pink) 10%, transparent); border: 1px solid color-mix(in srgb, var(--pink) 20%, transparent);  box-shadow: 0 0 1.6rem 0.1rem rgba(45, 18, 40, 0.14); }
+.ring-2 { inset: 11%; background: color-mix(in srgb, var(--pink) 14%, transparent); border: 1px solid color-mix(in srgb, var(--pink) 25%, transparent);  box-shadow: 0 0 1.6rem 0.1rem rgba(45, 18, 40, 0.2); }
+.ring-3 { inset: 22%; background: color-mix(in srgb, var(--pink) 26%, transparent); border: 1px solid color-mix(in srgb, var(--pink) 37%, transparent);  box-shadow: 0 0 1.6rem 0.1rem rgba(45, 18, 40, 0.2); }
+.ring-ticks { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ring-ticks line { stroke-width: 0.28; stroke-linecap: round; }
+.ticks-a line { stroke: color-mix(in srgb, var(--pink-strong) 13%, transparent); }
+.ticks-b line { stroke: color-mix(in srgb, var(--pink-strong) 13%, transparent); }
+.landing-content { position: relative; z-index: 1; max-width: 36rem; display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem; color: var(--lp-fg); }
+.landing-badge {
+  padding: 0.35rem 0.9rem; border-radius: 999px; font-size: 0.82rem; color: var(--lp-fg-soft);
+  background: var(--lp-badge-bg); border: 1px solid var(--lp-badge-border);
+}
+.landing-title { margin: 0; font-size: clamp(2.4rem, 5vw, 4rem); line-height: 1.05; font-weight: 500; letter-spacing: -0.03em; color: var(--lp-fg); text-shadow: var(--lp-tshadow); }
+.landing-title em { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: 0; color: var(--lp-em); }
+.landing-text { margin: 0; max-width: 30rem; font-size: 1.05rem; line-height: 1.55; color: var(--lp-fg-soft); }
+.landing-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+button.landing-btn { padding: 0.85rem 1.6rem; border-radius: 999px; font-size: 0.95rem; font-weight: 500; box-shadow: 0 0 0 0 transparent; transition: border-color 150ms ease, box-shadow 150ms ease; }
+button.landing-btn-solid, button.landing-btn-solid:hover:not(:disabled) { background: var(--lp-btn-bg); color: var(--lp-btn-fg); }
+button.landing-btn-solid { border-color: var(--lp-btn-bg); }
+button.landing-btn:hover:not(:disabled) { border-color: #ffb9d8; box-shadow: 0 0 0 1px #ffb9d8; }
+button.landing-btn-glass, button.landing-btn-glass:hover:not(:disabled) { background: var(--lp-glass-bg); color: var(--lp-glass-fg); }
+button.landing-btn-glass { border-color: var(--lp-glass-border); }
+
+@media (max-width: 48rem) {
+  .landing-hero { padding: 2rem 1.5rem; --r: 28rem; }
+  .landing-rings { opacity: 0.5; }
+}
+
+/* Компактний футер: бренд і короткий опис під ним; © — окремим рядком внизу під лінією */
+.site-footer-compact { max-width: var(--content-max); margin: 0 auto; padding: 1rem 1.25rem 0.75rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+.site-footer-compact p { margin: 0; color: var(--muted); font-size: 0.85rem; max-width: 32rem; line-height: 1.45; }
+.site-footer-bottom { padding-top: 0.75rem; padding-bottom: 1rem; }
+
+/* Менший дзеркальний набір кіл у лівому верхньому куті — лише на великих екранах */
+.landing-rings-tl { display: none; right: auto; bottom: auto; left: calc(var(--r) * -0.25); top: calc(var(--r) * -0.25); width: calc(var(--r) * 0.5); height: calc(var(--r) * 0.5); }
+@media (min-width: 90rem), (min-height: 56rem) { .landing-rings-tl { display: block; } }
+
+/* ---- Вхід / реєстрація: візуальна панель ліворуч, форма без картки праворуч ---- */
+.app-content > .auth-split {
+  width: 100%; max-width: min(var(--content-max), 80rem); margin: auto; padding: 0.5rem 1.25rem;
+  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 3rem; min-height: min(38rem, calc(100vh - 14rem));
+}
+/* панель виступає над і під полем форми */
+@media (min-width: 56.01rem) { .auth-form-side { margin-block: 1.75rem; } }
+.auth-visual {
+  position: relative; overflow: hidden; isolation: isolate; border-radius: 28px; background: var(--auth-bg); border: 1.5px solid var(--auth-border); min-height: 22rem;
+  --auth-bg: color-mix(in srgb, var(--pink) 14%, var(--surface)); --auth-border: color-mix(in srgb, var(--pink-strong) 45%, transparent); --auth-fg: var(--ink);
+  padding: 2.25rem 2.25rem 0;
+}
+.auth-grain { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; mix-blend-mode: soft-light; opacity: 0.3; }
+.auth-visual-text { position: relative; z-index: 3; margin: 0; max-width: 22rem; font-size: clamp(1.7rem, 2.6vw, 2.5rem); line-height: 1.15; font-weight: 400; letter-spacing: -0.02em; color: var(--auth-fg); }
+/* Ефект рифленого скла — такий самий, як на головній */
+.auth-glass {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none; mix-blend-mode: soft-light;
+  background:
+    linear-gradient(115deg, rgba(255,255,255,0.14) 0%, transparent 35%, rgba(255,255,255,0.06) 70%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 2px, rgba(0,0,0,0.07) 2px 6px);
+}
+.auth-bands { position: absolute; left: 0; right: 0; bottom: -1.5rem; height: 72%; z-index: 1; pointer-events: none; }
+.auth-bands span {
+  position: absolute; bottom: 0; width: 17%;
+  background: linear-gradient(to top, #fff0f6 0%, #f4aecb 22%, #e0699f 58%, rgba(224, 105, 159, 0) 100%);
+  filter: blur(14px); opacity: 0.92;
+}
+.auth-form-side { display: flex; align-items: center; }
+.auth-form-inner { width: 100%; max-width: 28rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.auth-form-inner h1 { margin: 1.25rem 0 0; font-size: 2.1rem; font-weight: 600; letter-spacing: -0.02em; }
+.auth-subtitle { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.95rem; }
+.auth-divider { width: 100%; border: 0; border-top: 1px solid var(--border); margin: 1.4rem 0 1.25rem; }
+.auth-form { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 1rem; margin: 0 0 0.9rem; }
+.auth-field { display: flex; flex-direction: column; gap: 0.4rem; color: var(--muted); font-size: 0.88rem; font-weight: 500; }
+.auth-field input { width: 100%; padding: 0.8rem 0.95rem; border-radius: var(--radius-sm); font-size: 0.95rem; color: var(--text); font-weight: 400; }
+.auth-field .hint { margin: 0; font-weight: 400; }
+button.auth-submit {
+  width: 100%; margin-top: 0.4rem; padding: 0.9rem 1rem; border-radius: var(--radius-sm); font-size: 1rem; font-weight: 600;
+  background: var(--pink); color: #1b1420; border-color: var(--pink);
+}
+button.auth-submit:hover:not(:disabled) { background: var(--pink-strong); border-color: var(--pink-strong); color: #1b1420; }
+.auth-links { margin: 0.15rem 0 0; text-align: center; font-size: 0.9rem; }
+.auth-form-inner .error { margin: 0 0 0.9rem; }
+@media (max-width: 56rem) {
+  .app-content > .auth-split { grid-template-columns: 1fr; gap: 1.75rem; min-height: 0; }
+  .auth-visual { min-height: 13rem; padding: 1.5rem 1.5rem 0; }
+  .auth-bands { height: 60%; }
+  .auth-form-side { justify-content: center; }
+}
+
+/* Колір візуальної панелі: м'яко контрастує з темою — у світлій трохи темніша за сторінку, у темній трохи світліша */
+:root[data-theme='dark'] .auth-visual { --auth-bg: #16121a; --auth-border: color-mix(in srgb, var(--pink) 20%, transparent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .auth-visual { --auth-bg: #16121a; --auth-border: color-mix(in srgb, var(--pink) 20%, transparent); } }
+
+
+/* ---- 404 ---- */
+.auth-visual-text:has(.notfound-code) { display: flex; flex-direction: column; gap: 0.5rem; max-width: none; }
+.notfound-code { font-size: clamp(4.5rem, 11vw, 9rem); line-height: 0.95; font-weight: 400; letter-spacing: -0.05em; }
+.notfound-text { font-size: clamp(1.1rem, 1.6vw, 1.4rem); line-height: 1.3; letter-spacing: -0.01em; opacity: 0.75; max-width: 20rem; }
+.notfound-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.notfound-actions > * { padding: 0.8rem 1.5rem; border-radius: 999px; font-size: 0.95rem; font-weight: 500; text-decoration: none; text-align: center; }
+.notfound-home { background: var(--pink); color: #1b1420; border: 1px solid var(--pink); transition: background 150ms ease, border-color 150ms ease; }
+.notfound-home:hover { background: var(--pink-strong); border-color: var(--pink-strong); }
+button.notfound-back { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+button.notfound-back:hover:not(:disabled) { background: transparent; border-color: var(--pink-strong); color: var(--ink); }
+
+/* ---- Екран завантаження: напис і тонка смуга, що ковзає ---- */
+.loading-screen { position: fixed; inset: 0; z-index: 1000; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; }
+.loading-label { margin: 0; color: var(--muted); font-size: 1.05rem; letter-spacing: 0.01em; }
+.loading-line { position: relative; width: 7rem; height: 2px; border-radius: 2px; overflow: hidden; background: var(--border); }
+.loading-line::after { content: ''; position: absolute; inset: 0 auto 0 0; width: 40%; border-radius: 2px; background: var(--pink-strong); animation: loading-slide 1.4s ease-in-out infinite; }
+@keyframes loading-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+@media (prefers-reduced-motion: reduce) { .loading-line::after { animation: none; width: 100%; opacity: 0.5; } }
+
+/* ---- Сторінка курсу: бічні вкладки ---- */
+.course-layout { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 1.75rem; align-items: start; margin-top: 1.25rem; }
+.course-tabs { position: sticky; top: calc(var(--header-h, 5.5rem) + 1rem); display: flex; flex-direction: column; gap: 0.35rem; padding: 0.6rem; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); }
+button.course-tab { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; padding: 0.7rem 0.95rem; border: 1px solid transparent; border-radius: 14px; background: transparent; color: var(--muted); font-size: 0.95rem; font-weight: 500; text-align: left; cursor: pointer; box-shadow: none; }
+button.course-tab:hover:not(:disabled) { background: color-mix(in srgb, var(--pink) 10%, transparent); color: var(--ink); border-color: transparent; }
+button.course-tab.is-active, button.course-tab.is-active:hover:not(:disabled) { background: color-mix(in srgb, var(--pink) 18%, var(--surface)); border-color: color-mix(in srgb, var(--pink-strong) 40%, transparent); color: var(--ink); }
+.course-tab small { min-width: 1.4rem; padding: 0.05rem 0.45rem; border-radius: 999px; background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--muted); font-size: 0.75rem; text-align: center; }
+.course-panel { min-width: 0; display: flex; flex-direction: column; gap: 1.5rem; }
+@media (max-width: 52rem) {
+  .course-layout { grid-template-columns: 1fr; gap: 1.25rem; }
+  .course-tabs { position: static; flex-direction: row; overflow-x: auto; border-radius: 18px; }
+  button.course-tab { width: auto; flex: none; white-space: nowrap; }
+}
+
+/* ---- Профіль у дизайн-системі: картка з банером, аватар, нередагована пошта ---- */
+.app-content > .profile-page { width: 100%; max-width: 40rem; margin: 1.5rem auto; padding: 0 1.25rem; }
+.profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 34px; padding: 0.6rem 0.6rem 1.6rem; box-shadow: 0 18px 48px -28px rgba(20, 12, 30, 0.35); }
+.profile-banner {
+  position: relative; height: 11.5rem; border-radius: 26px; overflow: hidden; background-size: cover; background-position: center;
+  background-color: color-mix(in srgb, var(--pink) 22%, var(--surface));
+  background-image: radial-gradient(circle 15rem at 0% 100%, color-mix(in srgb, var(--pink-strong) 55%, transparent), transparent 70%), repeating-linear-gradient(90deg, rgba(255,255,255,0.14) 0 2px, rgba(0,0,0,0.04) 2px 6px);
+}
+.profile-banner.has-image { background-image: none; }
+.profile-banner.has-image { background-size: cover; }
+.profile-banner-actions { position: absolute; top: 0.85rem; right: 0.85rem; display: flex; gap: 0.5rem; }
+button.glass-pill {
+  display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 1rem; border-radius: 999px; font-size: 0.9rem; font-weight: 500;
+  color: #1b1420; background: rgba(255, 255, 255, 0.55); border: 1px solid rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: none; cursor: pointer;
+}
+button.glass-pill:hover:not(:disabled) { background: rgba(255, 255, 255, 0.75); border-color: var(--pink-strong); color: #1b1420; }
+button.glass-pill-icon { padding: 0.55rem 0.7rem; }
+.profile-head { display: flex; align-items: flex-start; gap: 1.1rem; padding: 0 1.4rem; margin-top: -3.4rem; position: relative; }
+.profile-avatar { position: relative; flex: none; }
+.profile-avatar .avatar { width: 112px; height: 112px; border: 5px solid var(--surface); box-shadow: 0 6px 18px -8px rgba(20, 12, 30, 0.4); }
+button.profile-avatar-edit {
+  position: absolute; right: -2px; bottom: 4px; width: 2.6rem; height: 2.6rem; padding: 0; display: grid; place-items: center; border-radius: 50%;
+  background: var(--pink); color: #1b1420; border: 3px solid var(--surface); box-shadow: none; cursor: pointer;
+}
+button.profile-avatar-edit:hover:not(:disabled) { background: var(--pink-strong); color: #1b1420; border-color: var(--surface); }
+.profile-names { display: flex; flex-direction: column; gap: 0.5rem; padding-top: 4rem; min-width: 0; }
+.profile-names h1 { margin: 0; font-size: 1.7rem; font-weight: 600; letter-spacing: -0.02em; color: var(--pink-strong); overflow-wrap: anywhere; }
+button.profile-remove-photo { align-self: flex-start; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.88rem; font-weight: 500; }
+.profile-card > .error { margin: 1rem 1.4rem 0; }
+.profile-fields { display: flex; flex-direction: column; gap: 1.15rem; padding: 1.6rem 1.4rem 0; }
+.profile-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.profile-field-label { color: var(--muted); font-size: 0.88rem; font-weight: 500; }
+/* Нередагована пошта: без рамки поля, з пунктирним контуром, замком і приглушеним текстом — не схожа на поле вводу */
+.profile-locked {
+  padding: 0.75rem 1rem; border-radius: 14px; cursor: default; user-select: text; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border: 1px dashed color-mix(in srgb, var(--ink) 28%, transparent); background: color-mix(in srgb, var(--ink) 6%, transparent); color: var(--muted);
+}
+.profile-hint { margin: 0; }
+@media (max-width: 36rem) {
+  .profile-head { padding: 0 1rem; }
+  .profile-fields { padding: 1.4rem 1rem 0; }
+  .profile-banner { height: 9rem; }
+}
+.dash-view .dash-columns { grid-template-columns: 1fr; }
+
+/* ---- Акцентні блоки: виділяються на фоні однакових карток ---- */
+.home-header.hero-block {
+  padding: 1.6rem 1.9rem; margin-bottom: 1.5rem; border-radius: 28px; align-items: center;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--pink) 46%, var(--surface)) 0%, color-mix(in srgb, var(--pink) 16%, var(--surface)) 100%);
+  border: 1px solid color-mix(in srgb, var(--pink-strong) 35%, transparent);
+}
+.hero-block h1 { color: #1b1420; margin: 0 0 0.15rem; }
+.hero-block .hint, .hero-block p { color: rgba(27, 20, 32, 0.72); }
+.hero-block button:not(.btn-primary) { background: rgba(255, 255, 255, 0.55); border-color: rgba(255, 255, 255, 0.7); color: #1b1420; }
+.hero-block button:not(.btn-primary):hover:not(:disabled) { background: rgba(255, 255, 255, 0.8); border-color: var(--pink-strong); color: #1b1420; }
+:root[data-theme='dark'] .home-header.hero-block { background: linear-gradient(135deg, color-mix(in srgb, var(--pink) 26%, #1a141d) 0%, #1a141d 100%); border-color: color-mix(in srgb, var(--pink) 30%, transparent); }
+:root[data-theme='dark'] .hero-block h1 { color: var(--ink); }
+:root[data-theme='dark'] .hero-block .hint, :root[data-theme='dark'] .hero-block p { color: var(--muted); }
+:root[data-theme='dark'] .hero-block button:not(.btn-primary) { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.16); color: var(--ink); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .home-header.hero-block { background: linear-gradient(135deg, color-mix(in srgb, var(--pink) 26%, #1a141d) 0%, #1a141d 100%); border-color: color-mix(in srgb, var(--pink) 30%, transparent); }
+  :root:not([data-theme='light']) .hero-block h1 { color: var(--ink); }
+  :root:not([data-theme='light']) .hero-block .hint, :root:not([data-theme='light']) .hero-block p { color: var(--muted); }
+  :root:not([data-theme='light']) .hero-block button:not(.btn-primary) { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.16); color: var(--ink); }
+}
+.card.card-accent { background: color-mix(in srgb, var(--pink) 24%, var(--surface)); border-color: color-mix(in srgb, var(--pink-strong) 35%, transparent); box-shadow: none; }
+:root[data-theme='dark'] .card.card-accent { background: color-mix(in srgb, var(--pink) 13%, var(--surface)); border-color: color-mix(in srgb, var(--pink) 28%, transparent); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .card.card-accent { background: color-mix(in srgb, var(--pink) 13%, var(--surface)); border-color: color-mix(in srgb, var(--pink) 28%, transparent); } }
+
+/* ---- Журнал відвідуваності: зведення по студентах з розгортанням деталей ---- */
+.jr-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+.jr-head h2 { margin-bottom: 0.25rem; }
+.jr-head .hint { margin: 0; }
+.jr-segment { display: inline-flex; padding: 0.25rem; gap: 0.2rem; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); }
+.jr-segment button { padding: 0.4rem 0.9rem; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--muted); font-size: 0.85rem; box-shadow: none; cursor: pointer; }
+.jr-segment button:hover:not(:disabled) { background: transparent; color: var(--ink); border-color: transparent; }
+.jr-segment button.is-active, .jr-segment button.is-active:hover:not(:disabled) { background: color-mix(in srgb, var(--pink) 22%, var(--surface)); color: var(--ink); border-color: color-mix(in srgb, var(--pink-strong) 40%, transparent); }
+.jr-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 1.5rem; margin: 1.25rem 0 0.75rem; color: var(--muted); font-size: 0.9rem; }
+.jr-summary strong { color: var(--ink); font-size: 1.15rem; margin-right: 0.2rem; }
+button.jr-sort { margin-left: auto; padding: 0.4rem 0.9rem; border-radius: 999px; font-size: 0.85rem; }
+.jr-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.jr-list > li { border: 1px solid var(--border); border-radius: 18px; background: var(--surface); overflow: hidden; }
+.jr-list > li.is-open { border-color: color-mix(in srgb, var(--pink-strong) 40%, transparent); }
+button.jr-row {
+  display: grid; grid-template-columns: minmax(8rem, 1.6fr) 3.2rem minmax(5rem, 1.2fr) 3rem 4.5rem 4.5rem 1rem; align-items: center; gap: 0.9rem;
+  width: 100%; padding: 0.8rem 1.1rem; border: 0; border-radius: 0; background: transparent; box-shadow: none; text-align: left; color: var(--ink); cursor: pointer; font-weight: 400;
+}
+button.jr-row:hover:not(:disabled) { background: color-mix(in srgb, var(--pink) 8%, transparent); border: 0; color: var(--ink); }
+.jr-name { display: flex; flex-direction: column; min-width: 0; }
+.jr-name strong, .jr-name small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jr-name small, .jr-meta { color: var(--muted); font-size: 0.82rem; }
+.jr-count { font-weight: 600; font-variant-numeric: tabular-nums; }
+.jr-bar { display: block; height: 6px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 8%, transparent); overflow: hidden; }
+.jr-bar > span { display: block; height: 100%; border-radius: 6px; background: var(--pink-strong); }
+.jr-bar > span.is-low { background: color-mix(in srgb, var(--ink) 35%, transparent); }
+.jr-percent { font-weight: 600; font-variant-numeric: tabular-nums; }
+.jr-percent.is-low { color: var(--muted); }
+.jr-chevron { color: var(--muted); font-size: 1.3rem; line-height: 1; transition: transform 150ms ease; }
+.jr-list > li.is-open .jr-chevron { transform: rotate(90deg); }
+.jr-details { list-style: none; margin: 0; padding: 0.25rem 1.1rem 0.9rem; display: flex; flex-direction: column; gap: 0.15rem; border-top: 1px solid var(--border); }
+.jr-details li { display: grid; grid-template-columns: 1.4rem 1fr auto; align-items: center; gap: 0.6rem; padding: 0.4rem 0; font-size: 0.9rem; }
+.jr-details small { color: var(--muted); }
+.jr-mark { text-align: center; color: var(--muted); font-weight: 600; }
+.jr-mark.is-yes { color: var(--pink-strong); }
+@media (max-width: 44rem) {
+  button.jr-row { grid-template-columns: 1fr 3rem 1rem; }
+  .jr-bar, .jr-percent, .jr-meta { display: none; }
+}

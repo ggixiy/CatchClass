@@ -1,10 +1,11 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/http'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { Avatar } from '@/shared/ui/Avatar'
 import { RepeatIcon, TrashIcon } from '@/shared/ui/icons'
 import { Modal } from '@/shared/ui/Modal'
+import { AttendanceJournal, DashboardView } from '@/features/analytics'
 import { getMyProfile } from '@/features/user'
 import {
     createMeeting, deleteMeeting, listCourseOccurrences, MeetingFormData, MeetingOccurrence,
@@ -18,11 +19,16 @@ import {
 
 const UPCOMING_DAYS = 90
 
+type CourseTab = 'lessons' | 'members' | 'invite' | 'dashboard' | 'journal'
+const STUDENT_TABS: CourseTab[] = ['lessons', 'members']
+const OWNER_TABS: CourseTab[] = ['lessons', 'members', 'invite', 'dashboard', 'journal']
+
 // Сторінка курсу: розклад найближчих занять, код-запрошення (для викладача) і список учасників.
 export function CoursePage() {
     const { t, locale } = useI18n()
     const { courseId = '' } = useParams<{ courseId: string }>()
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
     const localeTag = locale === 'uk' ? 'uk-UA' : 'en-GB'
 
     const [course, setCourse] = useState<Course | null>(null)
@@ -117,9 +123,15 @@ export function CoursePage() {
     if (error && !course) return <main className="page"><p className="error">{error}</p></main>
     if (!course) return <main className="page"><p>{t('common.loading')}</p></main>
 
+    const tabs = course.owner ? OWNER_TABS : STUDENT_TABS
+    const requested = searchParams.get('tab') as CourseTab | null
+    const tab: CourseTab = requested && tabs.includes(requested) ? requested : 'lessons'
+    const selectTab = (next: CourseTab) => setSearchParams(next === 'lessons' ? {} : { tab: next }, { replace: true })
+    const tabCount: Partial<Record<CourseTab, number>> = { lessons: lessons.length, members: members.length }
+
     return (
         <main className="page-wide">
-            <div className="home-header">
+            <div className="home-header hero-block">
                 <div>
                     <h1>{course.title}</h1>
                     <p className="hint">{t('courses.teacher', { name: course.ownerName })}</p>
@@ -135,34 +147,78 @@ export function CoursePage() {
             {course.description && <p>{course.description}</p>}
             {error && <p className="error">{error}</p>}
 
-            <div className="home-columns">
-                <section className="home-column">
-                    <div className="card card-lg">
-                        <h2>{t('courses.schedule')}</h2>
-                        {lessons.length === 0 && <p className="hint">{t('courses.scheduleEmpty')}</p>}
-                        <ul className="meeting-list lesson-list">
-                            {lessons.map((l) => (
-                                <li key={`${l.meetingId}-${l.startTime}`} className="meeting-list-item">
-                                    <span className="meeting-list-open course-lesson">
-                                        <strong>{new Date(l.startTime).toLocaleDateString(localeTag, { day: 'numeric', month: 'long', weekday: 'short' })}</strong>
-                                        {' · '}{new Date(l.startTime).toLocaleTimeString(localeTag, { hour: '2-digit', minute: '2-digit' })}
-                                        {' — '}{l.title}{l.recurring && <RepeatIcon className="recurring-icon" size={16} />}
-                                    </span>
-                                    <div className="meeting-list-actions">
-                                        <button type="button" className="btn-primary" onClick={() => navigate('/prejoin', { state: { publicId: l.publicId, password: '' } })}>{t('meetingDetails.join')}</button>
-                                        {course.owner && (
-                                            <button type="button" className="icon-button icon-button-danger" title={t('common.delete')} onClick={() => handleDeleteLesson(l)}><TrashIcon size={22} /></button>
-                                        )}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </section>
+            <div className="course-layout">
+                <nav className="course-tabs" role="tablist" aria-label={t('courses.tabsLabel')}>
+                    {tabs.map((id) => (
+                        <button
+                            key={id}
+                            type="button"
+                            role="tab"
+                            aria-selected={tab === id}
+                            className={`course-tab${tab === id ? ' is-active' : ''}`}
+                            onClick={() => selectTab(id)}
+                        >
+                            <span>{t(`courses.tabs.${id}`)}</span>
+                            {tabCount[id] !== undefined && <small>{tabCount[id]}</small>}
+                        </button>
+                    ))}
+                </nav>
 
-                <section className="home-column">
-                    {course.owner && course.inviteCode && (
-                        <div className="card invite-card">
+                <section className="course-panel" role="tabpanel">
+                    {tab === 'lessons' && (
+                        <div className="card card-lg">
+                            <h2>{t('courses.schedule')}</h2>
+                            {lessons.length === 0 && <p className="hint">{t('courses.scheduleEmpty')}</p>}
+                            <ul className="meeting-list lesson-list">
+                                {lessons.map((l) => (
+                                    <li key={`${l.meetingId}-${l.startTime}`} className="meeting-list-item">
+                                        <span className="meeting-list-open course-lesson">
+                                            <span><strong>{new Date(l.startTime).toLocaleDateString(localeTag, { day: 'numeric', month: 'long', weekday: 'short' })}</strong>
+                                            {' · '}{new Date(l.startTime).toLocaleTimeString(localeTag, { hour: '2-digit', minute: '2-digit' })}
+                                            {' — '}{l.title}</span>
+                                            {l.recurring && <span className="recurring-badge"><RepeatIcon size={14} />{t('home.recurringBadge')}</span>}
+                                        </span>
+                                        <div className="meeting-list-actions">
+                                            <button type="button" className="btn-primary" onClick={() => navigate('/prejoin', { state: { publicId: l.publicId, password: '' } })}>{t('meetingDetails.join')}</button>
+                                            {course.owner && (
+                                                <button type="button" className="icon-button icon-button-danger" title={t('common.delete')} onClick={() => handleDeleteLesson(l)}><TrashIcon size={22} /></button>
+                                            )}
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {tab === 'members' && (
+                        <div className="card card-lg">
+                            <h2>{t('courses.members')} ({members.length})</h2>
+                            <ul className="course-members">
+                                {members.map((m) => (
+                                    <li key={m.userId}>
+                                        <Avatar size={40} photoUrl={m.photoUrl} displayName={m.displayName || '?'} />
+                                        <span className="course-member-name">
+                                            <strong>{m.displayName}</strong>
+                                            {course.owner && m.email && <small>{m.email}</small>}
+                                        </span>
+                                        {m.owner
+                                            ? <span className="info-chip">{t('courses.teacherBadge')}</span>
+                                            : course.owner
+                                                ? <button type="button" onClick={() => handleRemove(m.userId, false)}>{t('courses.remove')}</button>
+                                                : null}
+                                    </li>
+                                ))}
+                            </ul>
+                            {!course.owner && myId && (
+                                <div className="form-actions">
+                                    <button type="button" onClick={() => handleRemove(myId, true)}>{t('courses.leave')}</button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {tab === 'invite' && course.owner && course.inviteCode && (
+                        <div className="card card-lg card-accent invite-card">
                             <h2>{t('courses.invite')}</h2>
                             <p className="hint">{t('courses.inviteHint')}</p>
                             <p><span className="info-chip">{course.inviteCode}</span></p>
@@ -174,30 +230,9 @@ export function CoursePage() {
                         </div>
                     )}
 
-                    <div className="card card-lg">
-                        <h2>{t('courses.members')} ({members.length})</h2>
-                        <ul className="course-members">
-                            {members.map((m) => (
-                                <li key={m.userId}>
-                                    <Avatar size={40} photoUrl={m.photoUrl} displayName={m.displayName || '?'} />
-                                    <span className="course-member-name">
-                                        <strong>{m.displayName}</strong>
-                                        {course.owner && m.email && <small>{m.email}</small>}
-                                    </span>
-                                    {m.owner
-                                        ? <span className="info-chip">{t('courses.teacherBadge')}</span>
-                                        : course.owner
-                                            ? <button type="button" onClick={() => handleRemove(m.userId, false)}>{t('courses.remove')}</button>
-                                            : null}
-                                </li>
-                            ))}
-                        </ul>
-                        {!course.owner && myId && (
-                            <div className="form-actions">
-                                <button type="button" onClick={() => handleRemove(myId, true)}>{t('courses.leave')}</button>
-                            </div>
-                        )}
-                    </div>
+                    {tab === 'dashboard' && course.owner && <DashboardView courseId={course.id} />}
+
+                    {tab === 'journal' && course.owner && <AttendanceJournal courseId={course.id} courseTitle={course.title} />}
                 </section>
             </div>
 

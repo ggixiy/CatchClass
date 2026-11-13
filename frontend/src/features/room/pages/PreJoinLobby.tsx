@@ -165,11 +165,11 @@ export function PreJoinLobby() {
 
             <p className="hint">{t('prejoin.defaultHint')}</p>
             <div className="form-actions">
-                <button type="button" className="btn-secondary" onClick={() => navigate('/')} disabled={joining}>
-                    {t('common.cancel')}
-                </button>
                 <button type="button" className="btn-primary" onClick={handleJoin} disabled={joining}>
                     {joining ? t('prejoin.joining') : t('prejoin.join')}
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => navigate('/')} disabled={joining}>
+                    {t('common.cancel')}
                 </button>
             </div>
         </main>

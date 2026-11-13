@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react'
 import { ApiError } from '@/shared/api/http'
+import { DateTimePicker } from '@/shared/ui/DateTimePicker'
 import { Select } from '@/shared/ui/Select'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { generateMeetingPassword, Meeting, MeetingFormData, RecurrenceRule } from '../api/meetingApi'
@@ -102,10 +103,7 @@ export function ScheduleMeetingForm({ initial, initialDate, courses, defaultCour
                     options={[{ value: '', label: t('schedule.courseNone') }, ...courses.map((c) => ({ value: c.id, label: c.title }))]}
                 />
             )}
-            <label>
-                {t('schedule.start')}
-                <input type="datetime-local" value={startLocal} onChange={(e) => setStartLocal(e.target.value)} required />
-            </label>
+            <DateTimePicker label={t('schedule.start')} value={startLocal} onChange={setStartLocal} />
             <label>
                 {t('schedule.duration')}
                 <input
@@ -124,10 +122,7 @@ export function ScheduleMeetingForm({ initial, initialDate, courses, defaultCour
                 ]}
             />
             {recurrence !== 'NONE' && (
-                <label className="reveal-field">
-                    {t('schedule.recurrenceUntil')}
-                    <input type="datetime-local" value={endsLocal} onChange={(e) => setEndsLocal(e.target.value)} />
-                </label>
+                <DateTimePicker className="reveal-field" label={t('schedule.recurrenceUntil')} value={endsLocal} onChange={setEndsLocal} clearable />
             )}
 
             <label className="checkbox-row">

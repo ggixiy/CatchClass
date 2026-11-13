@@ -32,6 +32,7 @@ export function listWaitingGuests(meetingId: string) {
 export interface ParticipantPhoto {
     userId: string
     photoUrl: string | null
+    bannerUrl: string | null
 }
 
 // userId тут = LiveKit identity (RoomService.generateToken ставить token.setIdentity(userId)),
@@ -99,4 +100,12 @@ export function setWaitingRoom(meetingId: string, enabled: boolean) {
 
 export function getInvite(meetingId: string) {
     return http<{ publicId: string; password: string | null }>(`/rooms/${meetingId}/invite`)
+}
+
+export function sendPresence(meetingId: string) {
+    return http<void>(`/rooms/${meetingId}/presence`, { method: 'POST' })
+}
+
+export function sendPresenceLeave(meetingId: string) {
+    return http<void>(`/rooms/${meetingId}/presence/leave`, { method: 'POST' })
 }

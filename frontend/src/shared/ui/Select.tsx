@@ -1,4 +1,5 @@
-import { KeyboardEvent, useEffect, useRef, useState } from 'react'
+import { KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export interface SelectOption {
     value: string
@@ -20,15 +21,41 @@ export function Select({ value, options, onChange, label, className = '' }: Sele
     const [open, setOpen] = useState(false)
     const [active, setActive] = useState(0)
     const wrapRef = useRef<HTMLDivElement>(null)
+    const triggerRef = useRef<HTMLButtonElement>(null)
+    const listRef = useRef<HTMLUListElement>(null)
+    const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
     const selected = options.find((o) => o.value === value) ?? options[0]
 
     useEffect(() => {
         if (!open) return
         function onDown(e: MouseEvent) {
-            if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+            const target = e.target as Node
+            if (wrapRef.current?.contains(target) || listRef.current?.contains(target)) return
+            setOpen(false)
         }
         document.addEventListener('mousedown', onDown)
         return () => document.removeEventListener('mousedown', onDown)
+    }, [open])
+
+    // Список рендериться поверх сторінки (portal) і позиціонується за полем: його не обрізають
+    // батьківські контейнери (модальні вікна, блоки з overflow) і він не змінює висоту сторінки.
+    useLayoutEffect(() => {
+        if (!open) return
+        function place() {
+            const r = triggerRef.current?.getBoundingClientRect()
+            if (!r) return
+            const h = listRef.current?.offsetHeight ?? 0
+            const below = window.innerHeight - r.bottom - 8
+            const top = below >= h || r.top < h ? r.bottom + 6 : r.top - h - 6
+            setPos({ top, left: r.left, width: r.width })
+        }
+        place()
+        window.addEventListener('resize', place)
+        window.addEventListener('scroll', place, true)
+        return () => {
+            window.removeEventListener('resize', place)
+            window.removeEventListener('scroll', place, true)
+        }
     }, [open])
 
     function openList() {
@@ -64,6 +91,7 @@ export function Select({ value, options, onChange, label, className = '' }: Sele
             {label && <span className="select-label">{label}</span>}
             <div className="select-wrap">
                 <button
+                    ref={triggerRef}
                     type="button"
                     className="select-trigger"
                     aria-haspopup="listbox"
@@ -75,8 +103,9 @@ export function Select({ value, options, onChange, label, className = '' }: Sele
                         <path d="m6 9 6 6 6-6" />
                     </svg>
                 </button>
-                {open && (
-                    <ul className="select-list" role="listbox">
+                {open && createPortal(
+                    <ul className="select-list" role="listbox" ref={listRef}
+                        style={{ top: pos?.top ?? 0, left: pos?.left ?? 0, width: pos?.width, visibility: pos ? 'visible' : 'hidden' }}>
                         {options.map((o, i) => (
                             <li
                                 key={o.value}
@@ -89,7 +118,8 @@ export function Select({ value, options, onChange, label, className = '' }: Sele
                                 {o.label}
                             </li>
                         ))}
-                    </ul>
+                    </ul>,
+                    document.body,
                 )}
             </div>
         </div>

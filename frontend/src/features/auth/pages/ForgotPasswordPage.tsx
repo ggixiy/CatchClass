@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ApiError } from '@/shared/api/http'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { forgotPassword } from '../api/authApi'
+import { AuthLayout } from '../components/AuthLayout'
 
 export function ForgotPasswordPage() {
   const { t } = useI18n()
@@ -23,24 +24,23 @@ export function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <main className="page">
-        <h1>{t('auth.forgot.sentTitle')}</h1>
-        <p>{t('auth.forgot.sentBody')}</p>
-        <p><Link to="/login">{t('auth.forgot.backToLogin')}</Link></p>
-      </main>
+      <AuthLayout visualText={t('auth.visual.forgot')} title={t('auth.forgot.sentTitle')} subtitle={t('auth.forgot.sentBody')}>
+        <p className="auth-links"><Link to="/login">{t('auth.forgot.backToLogin')}</Link></p>
+      </AuthLayout>
     )
   }
 
   return (
-    <main className="page">
-      <h1>{t('auth.forgot.title')}</h1>
-      <p className="hint">{t('auth.forgot.hint')}</p>
+    <AuthLayout visualText={t('auth.visual.forgot')} title={t('auth.forgot.title')} subtitle={t('auth.forgot.hint')}>
       {error && <p className="error">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <button type="submit">{t('auth.forgot.submit')}</button>
+      <form onSubmit={handleSubmit} className="auth-form">
+        <label className="auth-field">
+          <span>Email</span>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </label>
+        <button type="submit" className="auth-submit">{t('auth.forgot.submit')}</button>
       </form>
-      <p><Link to="/login">{t('auth.forgot.backToLogin')}</Link></p>
-    </main>
+      <p className="auth-links"><Link to="/login">{t('auth.forgot.backToLogin')}</Link></p>
+    </AuthLayout>
   )
 }

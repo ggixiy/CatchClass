@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.catchclass.shared.security.CurrentUser;
 import com.catchclass.user.internal.dto.UserProfileResponse;
+import com.catchclass.user.internal.entity.Banner;
 import com.catchclass.user.internal.entity.Photo;
 import com.catchclass.user.internal.service.UserService;
 
@@ -48,5 +49,25 @@ class UserPhotoController {
     @DeleteMapping("/me/photo")
     UserProfileResponse remove() {
         return userService.deletePhoto(CurrentUser.require().id());
+    }
+
+    // ПУБЛІЧНИЙ, як і фото: використовується в <img>/CSS background без заголовка Authorization.
+    @GetMapping("/{id}/banner")
+    ResponseEntity<byte[]> getBanner(@PathVariable UUID id) {
+        Banner banner = userService.getBanner(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(banner.getContentType()))
+                .header(HttpHeaders.CACHE_CONTROL, "private, max-age=300")
+                .body(banner.getData());
+    }
+
+    @PostMapping("/me/banner")
+    UserProfileResponse uploadBanner(@RequestParam("file") MultipartFile file) {
+        return userService.updateBanner(CurrentUser.require().id(), file);
+    }
+
+    @DeleteMapping("/me/banner")
+    UserProfileResponse removeBanner() {
+        return userService.deleteBanner(CurrentUser.require().id());
     }
 }

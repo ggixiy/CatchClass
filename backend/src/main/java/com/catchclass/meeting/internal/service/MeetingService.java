@@ -17,6 +17,7 @@ import com.catchclass.course.CourseApi;
 import com.catchclass.course.CourseDeleted;
 import com.catchclass.meeting.MeetingAccess;
 import com.catchclass.meeting.MeetingApi;
+import com.catchclass.meeting.OccurrenceInfo;
 import com.catchclass.meeting.internal.dto.CreateMeetingRequest;
 import com.catchclass.meeting.internal.dto.MeetingOccurrenceResponse;
 import com.catchclass.meeting.internal.dto.MeetingResponse;
@@ -75,6 +76,22 @@ public class MeetingService implements MeetingApi {
                 .filter(m -> m.getPassword() == null || m.getPassword().equals(password)
                         || (m.getCourseId() != null && courseApi.isMemberOrOwner(m.getCourseId(), userId)))
                 .map(this::toAccess);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OccurrenceInfo> findOccurrences(UUID userId, Instant from, Instant to) {
+        return listOccurrences(userId, from, to).stream().map(this::toInfo).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OccurrenceInfo> findCourseOccurrences(UUID courseId, Instant from, Instant to) {
+        return expand(repository.findByCourseId(courseId), null, from, to).stream().map(this::toInfo).toList();
+    }
+
+    private OccurrenceInfo toInfo(MeetingOccurrenceResponse o) {
+        return new OccurrenceInfo(o.meetingId(), o.publicId(), o.title(), o.startTime(), o.endTime(), o.courseId(), o.own());
     }
 
     /** Курс видалено — разом із ним зникають і його заняття. */

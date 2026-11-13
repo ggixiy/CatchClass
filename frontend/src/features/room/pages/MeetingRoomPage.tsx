@@ -15,6 +15,7 @@ import { RoomStage } from '../components/RoomStage'
 import { RoomEndedOverlay } from '../components/RoomEndedOverlay'
 import { HostRequestOverlay } from '../components/HostRequestOverlay'
 import { useHostRequests } from '../hooks/useHostRequests'
+import { usePresenceHeartbeat } from '../hooks/usePresenceHeartbeat'
 
 interface RoomConnectionInfo {
     accessToken: string
@@ -57,6 +58,7 @@ export function MeetingRoomPage() {
     const [panelOpen, setPanelOpen] = useState(false)
     const [chatOpen, setChatOpen] = useState(false)
     const [myPhotoUrl, setMyPhotoUrl] = useState<string | null>(null)
+    const [myBannerUrl, setMyBannerUrl] = useState<string | null>(null)
     const [title, setTitle] = useState('')
     const [publicId, setPublicId] = useState('')
     const [waitingRoomEnabled, setWaitingRoomEnabled] = useState(false)
@@ -65,11 +67,12 @@ export function MeetingRoomPage() {
     // Запити до організатора (кімната очікування + показ екрана) опитуємо один раз тут:
     // від цих даних залежать і лічильник на кнопці «Учасники», і спливаюче вікно, і панель.
     const requests = useHostRequests(meetingId, Boolean(connection?.isHost))
+    usePresenceHeartbeat(meetingId, Boolean(connection) && !endedKind)
 
     // Фото профілю — для плейсхолдера власної плитки, коли камера вимкнена
     // (замість загальної іконки людини LiveKit за замовчуванням).
     useEffect(() => {
-        getMyProfile().then((p) => setMyPhotoUrl(p.photoUrl)).catch(() => {})
+        getMyProfile().then((p) => { setMyPhotoUrl(p.photoUrl); setMyBannerUrl(p.bannerUrl) }).catch(() => {})
     }, [])
 
     // Назва конференції — для верхньої панелі кімнати.
@@ -122,10 +125,11 @@ export function MeetingRoomPage() {
             video={Boolean(connection.camOn)}
             audio={Boolean(connection.micOn)}
             data-lk-theme="default"
-            className={[myPhotoUrl ? 'local-has-avatar' : '', panelOpen || chatOpen ? 'has-sidebar' : ''].filter(Boolean).join(' ') || undefined}
+            className={[myPhotoUrl ? 'local-has-avatar' : '', myBannerUrl ? 'local-has-banner' : '', panelOpen || chatOpen ? 'has-sidebar' : ''].filter(Boolean).join(' ') || undefined}
             style={{
                 height: '100vh',
                 ...(myPhotoUrl ? ({ '--own-avatar-url': `url(${myPhotoUrl})` } as CSSProperties) : {}),
+                ...(myBannerUrl ? ({ '--own-banner-url': `url(${myBannerUrl})` } as CSSProperties) : {}),
             }}
             onDisconnected={(reason) => {
                 // Сам організатор, що завершив конференцію, переходить на головну сам (LeaveButton);

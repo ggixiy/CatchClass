@@ -15,8 +15,10 @@ import com.catchclass.shared.web.ApiException;
 import com.catchclass.user.UserApi;
 import com.catchclass.user.UserSummary;
 import com.catchclass.user.internal.dto.UserProfileResponse;
+import com.catchclass.user.internal.entity.Banner;
 import com.catchclass.user.internal.entity.Photo;
 import com.catchclass.user.internal.entity.User;
+import com.catchclass.user.internal.repository.BannerRepository;
 import com.catchclass.user.internal.repository.PhotoRepository;
 import com.catchclass.user.internal.repository.UserRepository;
 
@@ -27,10 +29,12 @@ public class UserService implements UserApi {
 
     private final UserRepository repository;
     private final PhotoRepository photoRepository;
+    private final BannerRepository bannerRepository;
 
-    public UserService(UserRepository repository, PhotoRepository photoRepository) {
+    public UserService(UserRepository repository, PhotoRepository photoRepository, BannerRepository bannerRepository) {
         this.repository = repository;
         this.photoRepository = photoRepository;
+        this.bannerRepository = bannerRepository;
     }
 
     // ---- публічний контракт UserApi ----
@@ -66,6 +70,12 @@ public class UserService implements UserApi {
     @Transactional(readOnly = true)
     public Optional<String> findPhotoUrl(UUID id) {
         return Optional.ofNullable(photoUrlOrNull(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<String> findBannerUrl(UUID id) {
+        return Optional.ofNullable(bannerUrlOrNull(id));
     }
 
     // ---- для UserController / UserPhotoController ----
@@ -109,6 +119,44 @@ public class UserService implements UserApi {
     }
 
     @Transactional
+    public UserProfileResponse updateBanner(UUID id, MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "empty_file", "Файл порожній");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_PHOTO_TYPES.contains(contentType)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "unsupported_file_type",
+                    "Дозволені формати: PNG, JPEG, WEBP");
+        }
+
+        byte[] data;
+        try {
+            data = file.getBytes();
+        } catch (IOException e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "file_read_error", "Не вдалося прочитати файл");
+        }
+
+        bannerRepository.findById(id)
+                .ifPresentOrElse(
+                        banner -> banner.replace(contentType, data),
+                        () -> bannerRepository.save(new Banner(id, contentType, data)));
+
+        return getProfile(id);
+    }
+
+    @Transactional
+    public UserProfileResponse deleteBanner(UUID id) {
+        bannerRepository.deleteByUserIdIfExists(id);
+        return getProfile(id);
+    }
+
+    @Transactional(readOnly = true)
+    public Banner getBanner(UUID id) {
+        return bannerRepository.findById(id)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "banner_not_found", "Банер не знайдено"));
+    }
+
+    @Transactional
     public UserProfileResponse deletePhoto(UUID id) {
         photoRepository.deleteByUserIdIfExists(id);
         return getProfile(id);
@@ -128,12 +176,20 @@ public class UserService implements UserApi {
     }
 
     private UserProfileResponse toProfileResponse(User user) {
-        return new UserProfileResponse(user.getId(), user.getEmail(), user.getDisplayName(), photoUrlOrNull(user.getId()));
+        return new UserProfileResponse(user.getId(), user.getEmail(), user.getDisplayName(),
+                photoUrlOrNull(user.getId()), bannerUrlOrNull(user.getId()));
     }
 
     // photoUrl — не збережений рядок, а обчислене посилання: є фото в таблиці photos чи нема.
     private String photoUrlOrNull(UUID userId) {
         return photoRepository.existsById(userId) ? "/api/users/" + userId + "/photo" : null;
+    }
+
+    // У посиланні — позначка часу оновлення, щоб браузер не показував старий банер із кешу після заміни.
+    private String bannerUrlOrNull(UUID userId) {
+        return bannerRepository.findUpdatedAt(userId)
+                .map(updatedAt -> "/api/users/" + userId + "/banner?v=" + updatedAt.toEpochMilli())
+                .orElse(null);
     }
 
     private ApiException conflict() {

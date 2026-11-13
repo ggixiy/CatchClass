@@ -66,7 +66,7 @@ export function CoursesPage() {
 
     return (
         <main className="page-wide">
-            <div className="home-header">
+            <div className="home-header hero-block">
                 <h1>{t('courses.title')}</h1>
                 <button type="button" className="btn-primary schedule-cta" onClick={() => setShowCreate(true)}>{t('courses.create')}</button>
             </div>
@@ -87,7 +87,7 @@ export function CoursesPage() {
                 </section>
 
                 <section className="home-column">
-                    <div className="card join-card card-lg">
+                    <div className="card join-card card-lg card-accent">
                         <form onSubmit={handleJoin} className="stacked-form">
                             <h2>{t('courses.joinTitle')}</h2>
                             {joinError && <p className="error">{joinError}</p>}

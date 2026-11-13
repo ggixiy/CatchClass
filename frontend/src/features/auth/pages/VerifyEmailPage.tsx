@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { verifyEmail } from '../api/authApi'
+import { AuthLayout } from '../components/AuthLayout'
 
 type Status = 'loading' | 'success' | 'error'
 
@@ -22,12 +23,11 @@ export function VerifyEmailPage() {
     }, [token])
 
     return (
-        <main className="page">
-            <h1>{t('auth.verify.title')}</h1>
+        <AuthLayout visualText={t('auth.visual.verify')} title={t('auth.verify.title')}>
             {status === 'loading' && <p>{t('auth.verify.loading')}</p>}
             {status === 'success' && <p>{t('auth.verify.success')}</p>}
             {status === 'error' && <p className="error">{t('auth.verify.error')}</p>}
-            <p><Link to="/profile">{t('auth.verify.goToProfile')}</Link></p>
-        </main>
+            <p className="auth-links"><Link to="/profile">{t('auth.verify.goToProfile')}</Link></p>
+        </AuthLayout>
     )
 }

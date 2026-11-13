@@ -69,6 +69,19 @@ public class CourseService implements CourseApi {
 
     @Override
     @Transactional(readOnly = true)
+    public List<CourseSummary> findOwnedBy(UUID userId) {
+        return courses.findByOwnerUserId(userId).stream()
+                .map(c -> new CourseSummary(c.getId(), c.getTitle(), c.getOwnerUserId())).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UUID> findMemberUserIds(UUID courseId) {
+        return members.findByCourseId(courseId).stream().map(CourseMember::getUserId).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<UUID> findCourseIdsForUser(UUID userId) {
         Set<UUID> ids = new LinkedHashSet<>();
         courses.findByOwnerUserId(userId).forEach(c -> ids.add(c.getId()));

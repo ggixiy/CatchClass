@@ -14,6 +14,8 @@ import { ScheduleMeetingForm } from '../components/ScheduleMeetingForm'
 import { getMyProfile } from '@/features/user'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { tokenStore } from '@/shared/api/tokenStore'
+import { LandingHero } from '../components/LandingHero'
 
 
 function monthRange(year: number, month: number) {
@@ -27,7 +29,7 @@ function toDateKey(d: Date) {
     return d.toISOString().slice(0, 10)
 }
 
-export function HomePage() {
+function HomeDashboard() {
     const { t, locale } = useI18n()
     const localeTag = locale === 'uk' ? 'uk-UA' : 'en-US'
     const today = new Date()
@@ -190,7 +192,7 @@ export function HomePage() {
 
     return (
         <main className="page-wide">
-            <div className="home-header">
+            <div className="home-header hero-block">
                 <h1>{greeting}{displayName ? `, ${displayName}` : ''}</h1>
             </div>
             {error && <p className="error">{error}</p>}
@@ -303,4 +305,9 @@ export function HomePage() {
             )}
         </main>
     )
+}
+
+// Гість бачить лендінг, авторизований користувач — свій кабінет із розкладом.
+export function HomePage() {
+    return tokenStore.getAccessToken() !== null ? <HomeDashboard /> : <LandingHero />
 }

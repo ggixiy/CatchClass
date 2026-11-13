@@ -1,5 +1,7 @@
 package com.catchclass.meeting;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +20,12 @@ public interface MeetingApi {
     Optional<MeetingAccess> checkAccess(String publicId, String password, UUID userId);
 
     Optional<MeetingAccess> findById(UUID id);
+
+    /** Проведення зі розкладу користувача (власні й курсів, де він студент) у проміжку [from, to]. */
+    List<OccurrenceInfo> findOccurrences(UUID userId, Instant from, Instant to);
+
+    /** Проведення занять одного курсу у проміжку [from, to]. */
+    List<OccurrenceInfo> findCourseOccurrences(UUID courseId, Instant from, Instant to);
 
     /** Вмикає/вимикає кімнату очікування вже існуючого заняття (під час проведення). */
     void setWaitingRoomEnabled(UUID id, boolean enabled);

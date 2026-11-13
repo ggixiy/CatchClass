@@ -1,5 +1,8 @@
 package com.catchclass.room.internal.service;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -11,12 +14,17 @@ import com.catchclass.room.internal.livekit.LiveKitAdminClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.catchclass.meeting.MeetingAccess;
 import com.catchclass.meeting.MeetingApi;
+import com.catchclass.meeting.OccurrenceInfo;
+import com.catchclass.room.AttendanceRecord;
 import com.catchclass.room.ParticipantInfo;
 import com.catchclass.room.RoomApi;
 import com.catchclass.room.internal.config.LiveKitProperties;
+import com.catchclass.room.internal.entity.AttendanceSession;
+import com.catchclass.room.internal.repository.AttendanceSessionRepository;
 import com.catchclass.room.internal.dto.InviteResponse;
 import com.catchclass.room.internal.dto.ParticipantPhotoResponse;
 import com.catchclass.room.internal.dto.RoomStatusResponse;
@@ -45,6 +53,9 @@ public class RoomService implements RoomApi {
     private final ScreenShareRequestRegistry screenShareRequests;
     private final LiveKitProperties properties;
     private final LiveKitAdminClient adminClient;
+    private final AttendanceSessionRepository attendance;
+    // Якщо heartbeat не приходив довше — вважаємо, що людина вже вийшла (закрила вкладку без виходу).
+    private static final Duration PRESENCE_STALE_AFTER = Duration.ofSeconds(90);
     // Заняття, де організатор натиснув «Заглушити всіх»: гості, що приєднаються ПІСЛЯ цього,
     // теж отримують токен без права на мікрофон — доти, доки не буде «Розмутити всіх».
     private final Set<UUID> mutedMeetings = ConcurrentHashMap.newKeySet();
@@ -58,13 +69,14 @@ public class RoomService implements RoomApi {
 
     public RoomService(MeetingApi meetingApi, UserApi userApi, WaitingRoomRegistry registry,
                        ScreenShareRequestRegistry screenShareRequests, LiveKitProperties properties,
-                       LiveKitAdminClient adminClient) {
+                       LiveKitAdminClient adminClient, AttendanceSessionRepository attendance) {
         this.meetingApi = meetingApi;
         this.userApi = userApi;
         this.registry = registry;
         this.screenShareRequests = screenShareRequests;
         this.properties = properties;
         this.adminClient = adminClient;
+        this.attendance = attendance;
     }
 
     // ---- публічний контракт RoomApi (для модуля chat на кроці 6) ----
@@ -75,6 +87,61 @@ public class RoomService implements RoomApi {
                 .flatMap(meeting -> registry.find(meeting.id(), userId))
                 .filter(guest -> guest.getStatus() == GuestStatus.ADMITTED)
                 .map(guest -> new ParticipantInfo(guest.getUserId(), guest.getDisplayName(), guest.isHost()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AttendanceRecord> findAttendance(Collection<UUID> meetingIds, Instant from, Instant to) {
+        if (meetingIds.isEmpty()) {
+            return List.of();
+        }
+        return attendance.findByMeetingIdInAndJoinedAtBetween(meetingIds, from, to).stream()
+                .map(s -> new AttendanceRecord(s.getMeetingId(), s.getUserId(), s.getJoinedAt(),
+                        s.getLeftAt() != null ? s.getLeftAt() : s.getLastSeenAt(), s.getOccurrenceStart()))
+                .toList();
+    }
+
+    // ---- облік присутності (відвідуваність) ----
+
+    /** Heartbeat клієнта з кімнати: відкриває сеанс присутності або продовжує поточний. */
+    @Transactional
+    public void presence(UUID meetingId, UUID currentUserId) {
+        registry.find(meetingId, currentUserId)
+                .filter(g -> g.getStatus() == GuestStatus.ADMITTED)
+                .orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "not_in_room", "Ви не в конференції"));
+        Instant now = Instant.now();
+        attendance.findFirstByMeetingIdAndUserIdAndLeftAtIsNullOrderByJoinedAtDesc(meetingId, currentUserId)
+                .filter(s -> s.getLastSeenAt().isAfter(now.minus(PRESENCE_STALE_AFTER)))
+                .ifPresentOrElse(s -> s.touch(now),
+                        () -> attendance.save(new AttendanceSession(meetingId, currentUserId, now,
+                                resolveOccurrenceStart(meetingId, currentUserId, now))));
+    }
+
+    /**
+     * До якого проведення заняття належить вхід: те, що йде зараз, а якщо такого немає — найближче за часом
+     * (заняття могли розпочати раніше за розклад, пізніше або навіть за кілька днів до запланованої дати).
+     * Кімната однозначно задає заняття (meetingId); час потрібен лише щоб вибрати конкретну дату, якщо заняття повторюється. Саме цей зв'язок запам'ятовується в сеансі,
+     * тому присутність не залежить від того, наскільки фактичний час відрізнявся від запланованого.
+     */
+    private Instant resolveOccurrenceStart(UUID meetingId, UUID userId, Instant now) {
+        Instant best = null;
+        long bestDistance = Long.MAX_VALUE;
+        for (OccurrenceInfo o : meetingApi.findOccurrences(userId, now.minus(Duration.ofDays(100)), now.plus(Duration.ofDays(370)))) {
+            if (!o.meetingId().equals(meetingId)) continue;
+            long distance = now.isBefore(o.start()) ? Duration.between(now, o.start()).getSeconds()
+                    : now.isAfter(o.end()) ? Duration.between(o.end(), now).getSeconds() : 0;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = o.start();
+            }
+        }
+        return best;
+    }
+
+    @Transactional
+    public void presenceLeave(UUID meetingId, UUID currentUserId) {
+        attendance.findFirstByMeetingIdAndUserIdAndLeftAtIsNullOrderByJoinedAtDesc(meetingId, currentUserId)
+                .ifPresent(s -> s.leave(Instant.now()));
     }
 
     // ---- для RoomController ----
@@ -215,7 +282,8 @@ public class RoomService implements RoomApi {
                         "Спершу приєднайтесь через /api/rooms/join"));
         return registry.listAdmitted(meetingId).stream()
                 .map(guest -> new ParticipantPhotoResponse(guest.getUserId(),
-                        userApi.findPhotoUrl(guest.getUserId()).orElse(null)))
+                        userApi.findPhotoUrl(guest.getUserId()).orElse(null),
+                        userApi.findBannerUrl(guest.getUserId()).orElse(null)))
                 .toList();
     }
 

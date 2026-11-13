@@ -14,6 +14,12 @@ public interface CourseApi {
 
     boolean isOwner(UUID courseId, UUID userId);
 
+    /** Курси, якими користувач керує як викладач. */
+    List<CourseSummary> findOwnedBy(UUID userId);
+
+    /** Студенти курсу (без викладача). */
+    List<UUID> findMemberUserIds(UUID courseId);
+
     /** Усі курси користувача: і створені ним, і ті, до яких він приєднався. */
     List<UUID> findCourseIdsForUser(UUID userId);
 }

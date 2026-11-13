@@ -24,6 +24,17 @@ export function AppLayout() {
         getMyProfile().then(setProfile).catch(() => setProfile(null))
     }, [loggedIn, pathname])
 
+    // Висота липкої шапки як CSS-змінна: липкі елементи на сторінках (вкладки курсу) стають під нею, а не під шапкою.
+    useEffect(() => {
+        const header = document.querySelector<HTMLElement>('.site-header')
+        if (!header) return
+        const update = () => document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`)
+        update()
+        const observer = new ResizeObserver(update)
+        observer.observe(header)
+        return () => observer.disconnect()
+    }, [pathname])
+
     if (pathname.startsWith('/room/')) return <Outlet />
 
     return (
@@ -60,33 +71,12 @@ export function AppLayout() {
             <div className="app-content"><Outlet /></div>
 
             <footer className="site-footer">
-                <div className="site-footer-inner">
-                    <div className="site-footer-about">
-                        <Link to="/" className="site-brand"><Logo size={30} /><span className="site-brand-name">CatchClass</span></Link>
-                        <p>{t('layout.tagline')}</p>
-                    </div>
-                    <div className="site-footer-col">
-                        <h2>{t('layout.footerService')}</h2>
-                        <ul>
-                            <li><Link to="/">{t('layout.home')}</Link></li>
-                            <li><Link to="/">{t('layout.footerJoin')}</Link></li>
-                        </ul>
-                    </div>
-                    <div className="site-footer-col">
-                        <h2>{t('layout.footerAccount')}</h2>
-                        <ul>
-                            {loggedIn
-                                ? <li><Link to="/profile">{t('layout.account')}</Link></li>
-                                : <>
-                                    <li><Link to="/login">{t('layout.login')}</Link></li>
-                                    <li><Link to="/signup">{t('layout.signup')}</Link></li>
-                                </>}
-                        </ul>
-                    </div>
+                <div className="site-footer-compact">
+                    <Link to="/" className="site-brand"><Logo size={26} /><span className="site-brand-name">CatchClass</span></Link>
+                    <p>{t('layout.tagline')}</p>
                 </div>
                 <div className="site-footer-bottom">
                     <span>© {new Date().getFullYear()} CatchClass</span>
-                    <span>{t('layout.course')}</span>
                 </div>
             </footer>
         </div>

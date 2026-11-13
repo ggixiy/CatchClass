@@ -5,6 +5,7 @@ export interface UserProfile {
   email: string
   displayName: string
   photoUrl: string | null
+  bannerUrl: string | null
 }
 
 export function getMyProfile() {
@@ -23,4 +24,14 @@ export function uploadMyPhoto(file: File) {
 
 export function deleteMyPhoto() {
   return http<UserProfile>('/users/me/photo', { method: 'DELETE' })
+}
+
+export function uploadMyBanner(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return http<UserProfile>('/users/me/banner', { method: 'POST', body: formData })
+}
+
+export function deleteMyBanner() {
+  return http<UserProfile>('/users/me/banner', { method: 'DELETE' })
 }

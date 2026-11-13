@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/http'
 import { useI18n } from '@/shared/i18n/I18nContext'
 import { resetPassword } from '../api/authApi'
+import { AuthLayout } from '../components/AuthLayout'
 
 export function ResetPasswordPage() {
     const { t } = useI18n()
@@ -31,29 +32,23 @@ export function ResetPasswordPage() {
 
     if (!token) {
         return (
-            <main className="page">
-                <h1>{t('auth.reset.invalidTitle')}</h1>
+            <AuthLayout visualText={t('auth.visual.reset')} title={t('auth.reset.invalidTitle')}>
                 <p className="error">{t('auth.reset.invalidBody')}</p>
-                <p><Link to="/forgot-password">{t('auth.reset.requestNew')}</Link></p>
-            </main>
+                <p className="auth-links"><Link to="/forgot-password">{t('auth.reset.requestNew')}</Link></p>
+            </AuthLayout>
         )
     }
 
     return (
-        <main className="page">
-            <h1>{t('auth.reset.title')}</h1>
-            <p className="hint">{t('auth.reset.hint')}</p>
+        <AuthLayout visualText={t('auth.visual.reset')} title={t('auth.reset.title')} subtitle={t('auth.reset.hint')}>
             {error && <p className="error">{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <input
-                    type="password"
-                    placeholder={t('auth.reset.placeholder')}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                />
-                <button type="submit">{t('auth.reset.submit')}</button>
+            <form onSubmit={handleSubmit} className="auth-form">
+                <label className="auth-field">
+                    <span>{t('auth.reset.placeholder')}</span>
+                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </label>
+                <button type="submit" className="auth-submit">{t('auth.reset.submit')}</button>
             </form>
-        </main>
+        </AuthLayout>
     )
 }

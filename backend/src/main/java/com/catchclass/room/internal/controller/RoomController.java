@@ -81,6 +81,16 @@ class RoomController {
         roomService.setWaitingRoom(meetingId, CurrentUser.require().id(), enabled);
     }
 
+    @PostMapping("/{meetingId}/presence")
+    void presence(@PathVariable UUID meetingId) {
+        roomService.presence(meetingId, CurrentUser.require().id());
+    }
+
+    @PostMapping("/{meetingId}/presence/leave")
+    void presenceLeave(@PathVariable UUID meetingId) {
+        roomService.presenceLeave(meetingId, CurrentUser.require().id());
+    }
+
     @PostMapping("/{meetingId}/mute-all")
     void muteAll(@PathVariable UUID meetingId) {
         roomService.muteAll(meetingId, CurrentUser.require().id());

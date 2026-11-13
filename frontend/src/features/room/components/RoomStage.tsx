@@ -24,6 +24,8 @@ import { LanguageToggle } from '@/shared/ui/LanguageToggle'
 import { ChatIcon, MicLockedIcon, UsersIcon } from '@/shared/ui/icons'
 import { OrderedCarousel, OrderedGrid } from './OrderedLayouts'
 import { HandRaiseButton } from './HandRaiseButton'
+import { ReactionsControl } from './ReactionsControl'
+import { PollControl } from './PollControl'
 import { ScreenShareRequestButton } from './ScreenShareRequestButton'
 import { LeaveButton } from './LeaveButton'
 import { RoomSettingsMenu } from './RoomSettingsMenu'
@@ -39,9 +41,10 @@ import type { HostRequests } from '../hooks/useHostRequests'
 // для кожного треку, тож передати їй пропси напряму не можна — звідси контекст.
 interface StageContextValue {
     photos: Record<string, string>      // identity (== userId) → URL фото
+    banners: Record<string, string>     // identity → URL банера профілю (фон плитки без камери)
     handRaisedAt: Record<string, number> // identity → момент підняття руки
 }
-const StageContext = React.createContext<StageContextValue>({ photos: {}, handRaisedAt: {} })
+const StageContext = React.createContext<StageContextValue>({ photos: {}, banners: {}, handRaisedAt: {} })
 
 // Той самий обхід типів React 18 vs React 19, що й для LiveKitRoom у MeetingRoomPage:
 // тут потрібен варіант, що приймає звичайні пропси (className/style/data-*).
@@ -56,14 +59,18 @@ const TypedParticipantTileBase = ParticipantTile as unknown as (props: {
 // піднята рука — через data-hand-raised (рожева іконка й рамка малюються в CSS).
 function ParticipantTileWithExtras() {
     const trackRef = useMaybeTrackRefContext()
-    const { photos, handRaisedAt } = React.useContext(StageContext)
+    const { photos, banners, handRaisedAt } = React.useContext(StageContext)
     const identity = trackRef?.participant.identity
     const photoUrl = identity && !trackRef?.participant.isLocal ? photos[identity] : undefined
+    const bannerUrl = identity && !trackRef?.participant.isLocal ? banners[identity] : undefined
     const raised = identity !== undefined && handRaisedAt[identity] !== undefined
     return (
         <TypedParticipantTileBase
-            className={photoUrl ? 'has-remote-avatar' : undefined}
-            style={photoUrl ? ({ '--participant-avatar-url': `url(${photoUrl})` } as React.CSSProperties) : undefined}
+            className={[photoUrl ? 'has-remote-avatar' : '', bannerUrl ? 'has-remote-banner' : ''].filter(Boolean).join(' ') || undefined}
+            style={photoUrl || bannerUrl ? ({
+                ...(photoUrl ? { '--participant-avatar-url': `url(${photoUrl})` } : {}),
+                ...(bannerUrl ? { '--participant-banner-url': `url(${bannerUrl})` } : {}),
+            } as React.CSSProperties) : undefined}
             data-hand-raised={raised ? 'true' : undefined}
         />
     )
@@ -94,6 +101,7 @@ export function RoomStage({ isHost, meetingId, title, publicId, waitingRoomEnabl
     const { t } = useI18n()
     const lastAutoFocusedScreenShareTrack = React.useRef<TrackReferenceOrPlaceholder | null>(null)
     const [photos, setPhotos] = React.useState<Record<string, string>>({})
+    const [banners, setBanners] = React.useState<Record<string, string>>({})
     const handRaisedAt = useHandRaisedAt()
     const participants = useParticipants()
     const permissions = useLocalParticipantPermissions()
@@ -109,10 +117,13 @@ export function RoomStage({ isHost, meetingId, title, publicId, waitingRoomEnabl
                 .then((list) => {
                     if (cancelled) return
                     const map: Record<string, string> = {}
+                    const bannerMap: Record<string, string> = {}
                     for (const p of list) {
                         if (p.photoUrl) map[p.userId] = p.photoUrl
+                        if (p.bannerUrl) bannerMap[p.userId] = p.bannerUrl
                     }
                     setPhotos(map)
+                    setBanners(bannerMap)
                 })
                 .catch(() => {})
         }
@@ -149,6 +160,7 @@ export function RoomStage({ isHost, meetingId, title, publicId, waitingRoomEnabl
     // тож фото й руку для неї підставляємо звідси.
     const focusIdentity = focusTrack?.participant.identity
     const focusPhotoUrl = focusIdentity && !focusTrack?.participant.isLocal ? photos[focusIdentity] : undefined
+    const focusBannerUrl = focusIdentity && !focusTrack?.participant.isLocal ? banners[focusIdentity] : undefined
     const focusRaised = focusIdentity !== undefined && handRaisedAt[focusIdentity] !== undefined
     const carouselTracks = sortedTracks.filter((track) => !isEqualTrackRef(track, focusTrack))
 
@@ -201,7 +213,7 @@ export function RoomStage({ isHost, meetingId, title, publicId, waitingRoomEnabl
 
     return (
         <div className="lk-video-conference">
-            <StageContext.Provider value={{ photos, handRaisedAt }}>
+            <StageContext.Provider value={{ photos, banners, handRaisedAt }}>
                 <LayoutContextProvider value={layoutContext}>
                     <div className="room-topbar">
                         <div className="room-topbar-left">
@@ -220,6 +232,8 @@ export function RoomStage({ isHost, meetingId, title, publicId, waitingRoomEnabl
                                 )}
                             </button>
                             <HandRaiseButton />
+                            <ReactionsControl isHost={isHost} />
+                            <PollControl isHost={isHost} />
                         </div>
                         <div className="room-topbar-right">
                             <LanguageToggle />
@@ -242,15 +256,20 @@ export function RoomStage({ isHost, meetingId, title, publicId, waitingRoomEnabl
                             </div>
                         ) : (
                             <div className="lk-focus-layout-wrapper">
-                                <FocusLayoutContainer>
-                                    <OrderedCarousel tracks={carouselTracks}>
-                                        <TypedParticipantTileWithExtras />
-                                    </OrderedCarousel>
+                                <FocusLayoutContainer className={carouselTracks.length === 0 ? 'no-carousel' : undefined}>
+                                    {carouselTracks.length > 0 && (
+                                        <OrderedCarousel tracks={carouselTracks}>
+                                            <TypedParticipantTileWithExtras />
+                                        </OrderedCarousel>
+                                    )}
                                     {focusTrack && (
                                         <FocusLayout
                                             trackRef={focusTrack}
-                                            className={focusPhotoUrl ? 'has-remote-avatar' : undefined}
-                                            style={focusPhotoUrl ? ({ '--participant-avatar-url': `url(${focusPhotoUrl})` } as React.CSSProperties) : undefined}
+                                            className={[focusPhotoUrl ? 'has-remote-avatar' : '', focusBannerUrl ? 'has-remote-banner' : ''].filter(Boolean).join(' ') || undefined}
+                                            style={focusPhotoUrl || focusBannerUrl ? ({
+                                                ...(focusPhotoUrl ? { '--participant-avatar-url': `url(${focusPhotoUrl})` } : {}),
+                                                ...(focusBannerUrl ? { '--participant-banner-url': `url(${focusBannerUrl})` } : {}),
+                                            } as React.CSSProperties) : undefined}
                                             data-hand-raised={focusRaised ? 'true' : undefined}
                                         />
                                     )}
