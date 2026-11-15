@@ -5,3 +5,5 @@ frontend/dist/
 *.iml
 .env
 .DS_Store
+# Локальні секрети бекенду
+backend/src/main/resources/application-local.yml

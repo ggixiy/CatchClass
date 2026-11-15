@@ -234,3 +234,22 @@ export function PhotoCameraIcon(props: SizedIconProps) {
         </Svg>
     )
 }
+
+export function EyeIcon(props: SizedIconProps) {
+    return (
+        <Svg {...props}>
+            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+            <circle cx="12" cy="12" r="3" />
+        </Svg>
+    )
+}
+
+export function EyeOffIcon(props: SizedIconProps) {
+    return (
+        <Svg {...props}>
+            <path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3 3.8M6.5 6.6C3.8 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.2-.9" />
+            <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+            <path d="m3 3 18 18" />
+        </Svg>
+    )
+}

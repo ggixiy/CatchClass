@@ -1,0 +1,9 @@
+# Скопіюйте цей файл у application-local.yml (поруч) і заповніть своїми значеннями.
+# application-local.yml додано в .gitignore, тож секрети не потраплять у репозиторій.
+catchclass:
+  auth:
+    jwt-secret: dev-only-change-me-please-not-for-production-use-1234567890
+  livekit:
+    url: wss://ВАШ-ПРОЄКТ.livekit.cloud
+    api-key: ВАШ_API_KEY
+    api-secret: ВАШ_API_SECRET

@@ -2,6 +2,7 @@ import { FormEvent, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ApiError } from '@/shared/api/http'
 import { useI18n } from '@/shared/i18n/I18nContext'
+import { PasswordInput } from '@/shared/ui/PasswordInput'
 import { resetPassword } from '../api/authApi'
 import { AuthLayout } from '../components/AuthLayout'
 
@@ -45,7 +46,7 @@ export function ResetPasswordPage() {
             <form onSubmit={handleSubmit} className="auth-form">
                 <label className="auth-field">
                     <span>{t('auth.reset.placeholder')}</span>
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </label>
                 <button type="submit" className="auth-submit">{t('auth.reset.submit')}</button>
             </form>

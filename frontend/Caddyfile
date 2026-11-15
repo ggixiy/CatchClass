@@ -1,0 +1,14 @@
+# DOMAIN береться зі змінної середовища; для домену Caddy сам отримує й оновлює HTTPS-сертифікат
+{$DOMAIN} {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

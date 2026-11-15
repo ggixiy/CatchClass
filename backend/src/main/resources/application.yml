@@ -1,6 +1,9 @@
 spring:
   application:
     name: catchclass
+  profiles:
+    # Локально за замовчуванням підхоплюється application-local.yml (його немає в git); на сервері профіль задає docker-compose.
+    default: local
   datasource:
     url: jdbc:postgresql://localhost:5433/catchclass
     username: catchclass
@@ -33,7 +36,7 @@ management:
 
 catchclass:
   auth:
-    jwt-secret: ${JWT_SECRET:dev-only-change-me-please-not-for-production-use-1234567890}
+    jwt-secret: ${JWT_SECRET}
     access-token-ttl: 15m
     refresh-token-ttl: 30d
     email-verification-ttl: 24h
@@ -41,9 +44,9 @@ catchclass:
   notification:
     frontend-base-url: ${FRONTEND_BASE_URL:http://localhost:5173}
   livekit:
-    url: ${LIVEKIT_URL:wss://catchclass-te2ny9ze.livekit.cloud}
-    api-key: ${LIVEKIT_API_KEY:APIYReVnexhthjR}
-    api-secret: ${LIVEKIT_API_SECRET:hn7KeU24LLVBgBdpwDhxjDOBqoMXX06RIBDO8GyidwK}
+    url: ${LIVEKIT_URL}
+    api-key: ${LIVEKIT_API_KEY}
+    api-secret: ${LIVEKIT_API_SECRET}
 
 server:
   tomcat:
