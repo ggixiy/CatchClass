@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SignUpPage, VerifyEmailPage } from '@/features/auth'
+import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SignUpPage } from '@/features/auth'
 import { HomePage } from '@/features/meeting'
 import { CoursePage, CoursesPage, JoinCoursePage } from '@/features/course'
 import { JoinLinkPage, MeetingRoomPage, PreJoinLobby, WaitingRoomPage } from '@/features/room'
@@ -16,7 +16,6 @@ export const router = createBrowserRouter([{
   { path: '/signup', element: <SignUpPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
-  { path: '/verify-email', element: <VerifyEmailPage /> },
   { path: '/courses', element: <CoursesPage /> },
   { path: '/courses/:courseId', element: <CoursePage /> },
   { path: '/join-course/:code', element: <JoinCoursePage /> },

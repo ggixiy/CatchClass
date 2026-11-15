@@ -9,7 +9,6 @@ public record AuthProperties(
         String jwtSecret,
         Duration accessTokenTtl,
         Duration refreshTokenTtl,
-        Duration emailVerificationTtl,
         Duration passwordResetTtl
 ) {
 }

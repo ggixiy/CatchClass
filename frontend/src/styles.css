@@ -317,7 +317,7 @@ button.btn-primary.card-cta {
 button.btn-primary.card-cta:hover:not(:disabled) { background: var(--pink); color: #1b1420; border-color: var(--pink); box-shadow: none; }
 
 @media (max-width: 48rem) {
-  .home-columns { grid-template-columns: 1fr; }
+  .home-columns { grid-template-columns: minmax(0, 1fr); }
   .page { margin: 1.5rem auto; padding: 1.75rem 1.25rem; border-radius: var(--radius-md); }
   .page-wide { margin: 1rem auto; }
 }
@@ -326,10 +326,11 @@ button.btn-primary.card-cta:hover:not(:disabled) { background: var(--pink); colo
 .calendar-title-row h2, .calendar-title-row h3 { margin: 0; }
 
 .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-family: var(--font-display); font-size: 0.92rem; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.calendar-weekday { text-align: center; font-size: 0.68rem; color: var(--muted); padding: 2px; font-weight: 600; }
+.calendar { min-width: 0; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.calendar-weekday { min-width: 0; text-align: center; font-size: 0.68rem; color: var(--muted); padding: 2px; font-weight: 600; }
 .calendar-cell {
-  aspect-ratio: 1; border: none; border-radius: var(--radius-sm); background: var(--surface-2);
+  aspect-ratio: 1; min-width: 0; padding: 0; border: none; border-radius: var(--radius-sm); background: var(--surface-2);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; position: relative; font-size: 0.8rem; color: var(--text);
 }

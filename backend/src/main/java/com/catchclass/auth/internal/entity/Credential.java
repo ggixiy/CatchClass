@@ -18,9 +18,6 @@ public class Credential {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(name = "email_verified", nullable = false)
-    private boolean emailVerified = false;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -35,11 +32,6 @@ public class Credential {
 
     public UUID getUserId() { return userId; }
     public String getPasswordHash() { return passwordHash; }
-    public boolean isEmailVerified() { return emailVerified; }
-
-    public void markEmailVerified() {
-        this.emailVerified = true;
-    }
 
     public void changePassword(String newPasswordHash) {
         this.passwordHash = newPasswordHash;

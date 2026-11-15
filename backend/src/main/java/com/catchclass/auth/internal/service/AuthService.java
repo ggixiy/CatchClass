@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.catchclass.auth.PasswordResetRequested;
-import com.catchclass.auth.UserRegistered;
 import com.catchclass.auth.internal.config.AuthProperties;
 import com.catchclass.auth.internal.dto.TokenPair;
 import com.catchclass.auth.internal.entity.ActionToken;
@@ -64,9 +63,6 @@ public class AuthService {
         } catch (DataIntegrityViolationException e) {
             throw conflict();
         }
-
-        issueActionToken(user.id(), ActionToken.Type.EMAIL_VERIFICATION, properties.emailVerificationTtl(),
-                rawToken -> new UserRegistered(user.id(), user.email(), user.displayName(), rawToken));
 
         return issueTokenPair(user.id(), user.email());
     }
@@ -119,13 +115,6 @@ public class AuthService {
         Credential credential = credentialRepository.findById(token.getUserId()).orElseThrow(this::invalidToken);
         credential.changePassword(passwordEncoder.encode(newPassword));
         // save() не потрібен: усередині @Transactional Hibernate сам збереже зміну (dirty checking).
-    }
-
-    @Transactional
-    public void verifyEmail(String rawToken) {
-        ActionToken token = consumeToken(rawToken, ActionToken.Type.EMAIL_VERIFICATION);
-        Credential credential = credentialRepository.findById(token.getUserId()).orElseThrow(this::invalidToken);
-        credential.markEmailVerified();
     }
 
     // ---- допоміжні методи ----

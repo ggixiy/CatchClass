@@ -7,7 +7,6 @@ import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
 import com.catchclass.auth.PasswordResetRequested;
-import com.catchclass.auth.UserRegistered;
 import com.catchclass.meeting.MeetingReminderDue;
 import com.catchclass.notification.internal.config.NotificationProperties;
 import com.catchclass.notification.internal.service.MailService;
@@ -27,15 +26,6 @@ class NotificationListener {
         this.mailService = mailService;
         this.properties = properties;
         this.userApi = userApi;
-    }
-
-    // @ApplicationModuleListener (не звичайний @EventListener) спрацьовує лише ПІСЛЯ
-    // успішного коміту транзакції auth — якщо реєстрація відкотиться, лист не піде.
-    @ApplicationModuleListener
-    void on(UserRegistered event) {
-        String link = properties.frontendBaseUrl() + "/verify-email?token=" + event.verificationToken();
-        mailService.send(event.email(), "Підтвердіть email у CatchClass",
-                "Вітаємо, " + event.displayName() + "!\n\nПідтвердіть email за посиланням:\n" + link);
     }
 
     @ApplicationModuleListener

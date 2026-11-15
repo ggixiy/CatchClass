@@ -82,10 +82,4 @@ class AuthController {
         authService.resetPassword(request.token(), request.newPassword());
         return ResponseEntity.noContent().build();
     }
-
-    @PostMapping("/verify-email")
-    ResponseEntity<Void> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
-        authService.verifyEmail(request.token());
-        return ResponseEntity.noContent().build();
-    }
 }

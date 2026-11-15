@@ -37,7 +37,6 @@ export const translations = {
         signup: 'Створіть акаунт і проводьте заняття легко.',
         forgot: 'Нічого страшного — відновимо доступ за хвилину.',
         reset: 'Новий пароль — і знову до занять.',
-        verify: 'Ще крок — і все готово.',
       },
       login: {
         title: 'Вхід',
@@ -74,13 +73,6 @@ export const translations = {
         invalidTitle: 'Скидання пароля',
         invalidBody: 'Посилання недійсне: не вказано токен.',
         requestNew: 'Запросити нове посилання',
-      },
-      verify: {
-        title: 'Підтвердження email',
-        loading: 'Перевіряємо посилання…',
-        success: 'Email підтверджено. Дякуємо!',
-        error: 'Посилання недійсне або протерміноване.',
-        goToProfile: 'Перейти до профілю',
       },
     },
     home: {
@@ -408,7 +400,6 @@ export const translations = {
         signup: 'Create an account and run classes with ease.',
         forgot: 'No worries — we’ll get you back in a minute.',
         reset: 'A new password and back to class.',
-        verify: 'One more step and you’re all set.',
       },
       login: {
         title: 'Log in',
@@ -445,13 +436,6 @@ export const translations = {
         invalidTitle: 'Password reset',
         invalidBody: 'Invalid link: no token provided.',
         requestNew: 'Request a new link',
-      },
-      verify: {
-        title: 'Email confirmation',
-        loading: 'Verifying the link…',
-        success: 'Email confirmed. Thank you!',
-        error: 'The link is invalid or has expired.',
-        goToProfile: 'Go to profile',
       },
     },
     home: {

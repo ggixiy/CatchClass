@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 @Table(name = "action_tokens", schema = "auth")
 public class ActionToken {
 
-    public enum Type { EMAIL_VERIFICATION, PASSWORD_RESET }
+    public enum Type { PASSWORD_RESET }
 
     @Id
     @Column(name = "token_hash")

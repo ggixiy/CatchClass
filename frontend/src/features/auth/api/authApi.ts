@@ -62,7 +62,3 @@ export function forgotPassword(email: string) {
 export function resetPassword(token: string, newPassword: string) {
     return http<void>('/auth/reset-password', { method: 'POST', body: { token, newPassword }, skipAuthRetry: true })
 }
-
-export function verifyEmail(token: string) {
-    return http<void>('/auth/verify-email', { method: 'POST', body: { token }, skipAuthRetry: true })
-}
