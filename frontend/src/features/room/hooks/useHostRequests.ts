@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-    admitGuest, approveScreenShare, denyGuest, denyScreenShare, listScreenShareRequests, listWaitingGuests,
+    admitAllGuests, admitGuest, approveScreenShare, denyGuest, denyScreenShare, listScreenShareRequests, listWaitingGuests,
     ScreenShareRequest, WaitingGuest,
 } from '../api/roomApi'
 
@@ -51,6 +51,8 @@ export function useHostRequests(meetingId: string | undefined, isHost: boolean) 
         run(userId, () => admitGuest(meetingId!, userId), () => setWaiting((p) => p.filter((g) => g.userId !== userId)))
     const deny = (userId: string) =>
         run(userId, () => denyGuest(meetingId!, userId), () => setWaiting((p) => p.filter((g) => g.userId !== userId)))
+    const admitAll = () =>
+        run('all', () => admitAllGuests(meetingId!).then(() => undefined), () => setWaiting([]))
     const allowScreen = (userId: string) =>
         run(userId, () => approveScreenShare(meetingId!, userId), () => setScreenShare((p) => p.filter((r) => r.userId !== userId)))
     const declineScreen = (userId: string) =>
@@ -62,6 +64,7 @@ export function useHostRequests(meetingId: string | undefined, isHost: boolean) 
         count: waiting.length + screenShare.length,
         busyUserId,
         admit,
+        admitAll,
         deny,
         allowScreen,
         declineScreen,

@@ -1,4 +1,5 @@
 import { useI18n } from '@/shared/i18n/I18nContext'
+import { toLocalDateKey } from '@/shared/lib/localDate'
 
 interface MonthCalendarProps {
     year: number
@@ -29,7 +30,8 @@ export function MonthCalendar({
     for (let i = 0; i < startWeekday; i++) cells.push(null)
     for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(Date.UTC(year, month, d)))
 
-    const todayKey = toDateKey(new Date())
+    // «Сьогодні» — за місцевим часом; клітинки сітки нижче — чиста календарна дата (UTC-північ без зсувів).
+    const todayKey = toLocalDateKey(new Date())
 
     return (
         <div className="calendar">

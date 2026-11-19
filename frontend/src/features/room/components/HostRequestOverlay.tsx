@@ -22,7 +22,7 @@ interface HostRequestOverlayProps {
 
 export function HostRequestOverlay({ requests, hidden }: HostRequestOverlayProps) {
     const { t } = useI18n()
-    const { waiting, screenShare, busyUserId, admit, deny, allowScreen, declineScreen } = requests
+    const { waiting, screenShare, busyUserId, admit, admitAll, deny, allowScreen, declineScreen } = requests
     const firstSeenAt = useRef(new Map<string, number>())
     const [, tick] = useState(0)
 
@@ -58,8 +58,21 @@ export function HostRequestOverlay({ requests, hidden }: HostRequestOverlayProps
     const visible = items.filter((i) => now - (firstSeenAt.current.get(i.key) ?? now) < VISIBLE_MS)
     if (hidden || visible.length === 0) return null
 
+    const visibleJoins = visible.filter((i) => i.kind === 'join').length
+
     return (
         <div className="request-overlay" role="region" aria-live="polite">
+            {visibleJoins > 1 && (
+                <div className="request-card">
+                    <span className="request-card-icon"><UsersIcon size={18} /></span>
+                    <span className="request-card-text">{t('room.requestJoinMany', { count: waiting.length })}</span>
+                    <span className="request-card-actions">
+                        <button type="button" className="btn-primary" disabled={busyUserId === 'all'} onClick={() => admitAll()}>
+                            {t('room.letInAllShort')}
+                        </button>
+                    </span>
+                </div>
+            )}
             {visible.map((item) => {
                 const busy = busyUserId === item.userId
                 return (

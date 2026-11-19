@@ -2,7 +2,7 @@ import { http } from '@/shared/api/http'
 
 export interface RoomStatus {
     meetingId: string
-    status: 'WAITING' | 'ADMITTED' | 'DENIED'
+    status: 'WAITING' | 'WAITING_FOR_HOST' | 'ADMITTED' | 'DENIED' | 'ENDED'
     accessToken: string | null
     serverUrl: string | null
     roomName: string
@@ -19,6 +19,15 @@ export interface WaitingGuest {
 
 export function joinRoom(publicId: string, password: string) {
     return http<RoomStatus>('/rooms/join', { method: 'POST', body: { publicId, password } })
+}
+
+// Лише перевіряє Meeting ID і пароль, нікуди людину не «заводить».
+export function checkRoom(publicId: string, password: string) {
+    return http<{ title: string }>('/rooms/check', { method: 'POST', body: { publicId, password } })
+}
+
+export function admitAllGuests(meetingId: string) {
+    return http<{ admitted: number }>(`/rooms/${meetingId}/admit-all`, { method: 'POST' })
 }
 
 export function getRoomStatus(meetingId: string) {

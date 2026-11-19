@@ -12,21 +12,25 @@ import { MeetingDetailsModal } from '../components/MeetingDetailsModal'
 import { MonthCalendar } from '../components/MonthCalendar'
 import { ScheduleMeetingForm } from '../components/ScheduleMeetingForm'
 import { getMyProfile } from '@/features/user'
+import { checkRoom } from '@/features/room'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tokenStore } from '@/shared/api/tokenStore'
+import { toLocalDateKey } from '@/shared/lib/localDate'
 import { LandingHero } from '../components/LandingHero'
 
 
 function monthRange(year: number, month: number) {
     return {
-        from: new Date(Date.UTC(year, month, 1)).toISOString(),
-        to: new Date(Date.UTC(year, month + 1, 1)).toISOString(),
+        // Межі місяця — за місцевим часом: інакше заняття о 00:00–02:00 першого числа
+        // потрапляють у запит не того місяця.
+        from: new Date(year, month, 1).toISOString(),
+        to: new Date(year, month + 1, 1).toISOString(),
     }
 }
 
 function toDateKey(d: Date) {
-    return d.toISOString().slice(0, 10)
+    return toLocalDateKey(d)
 }
 
 function HomeDashboard() {
@@ -56,9 +60,16 @@ function HomeDashboard() {
     // Більше не звертаємось до /rooms/join тут — спершу ведемо людину на екран
     // перевірки камери/мікрофона (PreJoinLobby), а сам запит на вхід виконується вже там,
     // після того як вона натисне «Приєднатися». Це однаково стосується і організатора, і гостя.
-    function startJoin(publicId: string, password: string) {
+    // Meeting ID і пароль перевіряємо ще тут, на головному екрані: неправильні дані не мають
+    // заводити людину на екран камери/мікрофона. Сама перевірка нікого в кімнату не додає.
+    async function startJoin(publicId: string, password: string) {
         setJoinError(null)
-        navigate('/prejoin', { state: { publicId, password } })
+        try {
+            const result = await checkRoom(publicId, password)
+            navigate('/prejoin', { state: { publicId, password, title: result.title } })
+        } catch (err) {
+            setJoinError(err instanceof ApiError ? err.message : t('home.joinCheckError'))
+        }
     }
 
     async function handleJoinExisting(e: FormEvent) {
@@ -83,14 +94,14 @@ function HomeDashboard() {
     const occurrencesByDay = useMemo(() => {
         const map = new Map<string, number>()
         for (const occ of occurrences) {
-            const key = occ.startTime.slice(0, 10)
+            const key = toLocalDateKey(occ.startTime)
             map.set(key, (map.get(key) ?? 0) + 1)
         }
         return map
     }, [occurrences])
 
     const dayOccurrences = useMemo(
-        () => occurrences.filter((o) => o.startTime.slice(0, 10) === selectedDay),
+        () => occurrences.filter((o) => toLocalDateKey(o.startTime) === selectedDay),
         [occurrences, selectedDay],
     )
 
@@ -185,7 +196,7 @@ function HomeDashboard() {
     }
 
     const hour = new Date().getHours()
-    const greeting = hour < 12 ? t('home.greetingMorning') : hour < 18 ? t('home.greetingDay') : t('home.greetingEvening')
+    const greeting = hour < 5 ? t('home.greetingNight') : hour < 12 ? t('home.greetingMorning') : hour < 18 ? t('home.greetingDay') : t('home.greetingEvening')
     const selectedDayLabel = selectedDay
         ? new Date(`${selectedDay}T00:00:00`).toLocaleDateString(localeTag, { day: 'numeric', month: 'long' })
         : ''

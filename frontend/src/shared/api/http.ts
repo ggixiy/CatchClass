@@ -64,6 +64,13 @@ export async function http<T>(path: string, options: RequestOptions = {}): Promi
   })
 
   if ((response.status === 401 || response.status === 403) && !skipAuthRetry) {
+    // Якщо сервер відповів бізнес-помилкою з кодом (наприклад, неправильний пароль зустрічі) —
+    // це не прострочений токен: оновлювати сесію й повторювати запит не треба
+    // (інакше кожна невдала спроба рахувалась би двічі).
+    const body = await response.clone().json().catch(() => null)
+    if (body && typeof body.code === 'string') {
+      throw new ApiError(body as ProblemDetail)
+    }
     try {
       await refreshAccessToken()
       return http<T>(path, { ...options, skipAuthRetry: true })

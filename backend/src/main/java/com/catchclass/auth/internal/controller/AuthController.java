@@ -1,7 +1,9 @@
 package com.catchclass.auth.internal.controller;
 
 import com.catchclass.auth.internal.dto.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.time.Duration;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.catchclass.auth.internal.service.AuthService;
 import com.catchclass.shared.web.ApiException;
+import com.catchclass.shared.web.AttemptLimiter;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,10 +25,14 @@ class AuthController {
 
     private static final String REFRESH_COOKIE = "refreshToken";
 
-    private final AuthService authService;
+    private static final Duration LOGIN_WINDOW = Duration.ofMinutes(15);
 
-    AuthController(AuthService authService) {
+    private final AuthService authService;
+    private final AttemptLimiter limiter;
+
+    AuthController(AuthService authService, AttemptLimiter limiter) {
         this.authService = authService;
+        this.limiter = limiter;
     }
 
     @PostMapping("/register")
@@ -35,8 +42,15 @@ class AuthController {
     }
 
     @PostMapping("/login")
-    ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
-        return withRefreshCookie(authService.login(request.email(), request.password()), HttpStatus.OK);
+    ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
+        String ip = http.getRemoteAddr();
+        // Перебір пароля до одного акаунта: 5 невдалих спроб за 15 хв з однієї IP.
+        // Перебір багатьох акаунтів з однієї IP (credential stuffing): 20 невдалих спроб за 15 хв.
+        String perAccount = "login:" + ip + ":" + request.email().trim().toLowerCase();
+        TokenPair pair = limiter.guardFailures("login-ip:" + ip, 20, LOGIN_WINDOW,
+                () -> limiter.guardFailures(perAccount, 5, LOGIN_WINDOW,
+                        () -> authService.login(request.email(), request.password())));
+        return withRefreshCookie(pair, HttpStatus.OK);
     }
 
     @PostMapping("/refresh")

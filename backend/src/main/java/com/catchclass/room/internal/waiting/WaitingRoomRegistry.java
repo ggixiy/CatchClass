@@ -39,7 +39,16 @@ public class WaitingRoomRegistry {
         if (guests == null) {
             return List.of();
         }
-        return guests.values().stream().filter(g -> g.getStatus() == GuestStatus.WAITING).toList();
+        return guests.values().stream().filter(g -> g.getStatus() == GuestStatus.WAITING && !g.isAwaitingHost()).toList();
+    }
+
+    /** Гості, які прийшли до організатора й чекають, поки він приєднається. */
+    public Collection<WaitingGuest> listAwaitingHost(UUID meetingId) {
+        Map<UUID, WaitingGuest> guests = byMeeting.get(meetingId);
+        if (guests == null) {
+            return List.of();
+        }
+        return guests.values().stream().filter(WaitingGuest::isAwaitingHost).toList();
     }
 
     /** Усі допущені учасники кімнати — для показу фото інших учасників у зустрічі. */

@@ -92,7 +92,7 @@ export function ParticipantsPanel({ meetingId, isHost, requests, open, onClose }
 
     if (!open) return null
 
-    const { waiting, screenShare, busyUserId, admit, deny, allowScreen, declineScreen } = requests
+    const { waiting, screenShare, busyUserId, admit, admitAll, deny, allowScreen, declineScreen } = requests
 
     return (
         <aside className="participants-panel">
@@ -107,6 +107,11 @@ export function ParticipantsPanel({ meetingId, isHost, requests, open, onClose }
                         {waiting.length > 0 && (
                             <>
                                 <h4>{t('room.waitingRoomSection', { count: waiting.length })}</h4>
+                                {waiting.length > 1 && (
+                                    <button type="button" className="btn-primary" disabled={busyUserId === 'all'} onClick={() => admitAll()}>
+                                        {t('room.letInAll', { count: waiting.length })}
+                                    </button>
+                                )}
                                 <ul className="participants-list">
                                     {waiting.map((guest) => (
                                         <li key={guest.userId} className="participants-item">

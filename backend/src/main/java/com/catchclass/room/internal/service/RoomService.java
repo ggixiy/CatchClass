@@ -25,7 +25,9 @@ import com.catchclass.room.RoomApi;
 import com.catchclass.room.internal.config.LiveKitProperties;
 import com.catchclass.room.internal.entity.AttendanceSession;
 import com.catchclass.room.internal.repository.AttendanceSessionRepository;
+import com.catchclass.room.internal.dto.AdmitAllResponse;
 import com.catchclass.room.internal.dto.InviteResponse;
+import com.catchclass.room.internal.dto.MeetingCheckResponse;
 import com.catchclass.room.internal.dto.ParticipantPhotoResponse;
 import com.catchclass.room.internal.dto.RoomStatusResponse;
 import com.catchclass.room.internal.dto.ScreenShareRequestResponse;
@@ -66,6 +68,13 @@ public class RoomService implements RoomApi {
     // Виключені організатором: навіть якщо кімната очікування вимкнена, їхній повторний вхід
     // потребує схвалення — інакше «викинути» людину було б неможливо.
     private final Map<UUID, Set<UUID>> kicked = new ConcurrentHashMap<>();
+    // Коли організатор завершив заняття для всіх: гості, що чекали, мають побачити зрозуміле
+    // повідомлення «зустріч завершена», а не помилку «ви не в кімнаті очікування».
+    private final Map<UUID, Instant> endedAt = new ConcurrentHashMap<>();
+    private static final Duration ENDED_NOTICE_TTL = Duration.ofMinutes(10);
+    // Статус для клієнта (не зберігається в реєстрі).
+    static final String STATUS_WAITING_FOR_HOST = "WAITING_FOR_HOST";
+    static final String STATUS_ENDED = "ENDED";
 
     public RoomService(MeetingApi meetingApi, UserApi userApi, WaitingRoomRegistry registry,
                        ScreenShareRequestRegistry screenShareRequests, LiveKitProperties properties,
@@ -146,6 +155,14 @@ public class RoomService implements RoomApi {
 
     // ---- для RoomController ----
 
+    /** Лише перевіряє Meeting ID і пароль — без побічних ефектів (нікого не додає в кімнату чи чергу). */
+    public MeetingCheckResponse check(UUID currentUserId, String publicId, String password) {
+        MeetingAccess meeting = meetingApi.checkAccess(publicId, password, currentUserId)
+                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "invalid_meeting_credentials",
+                        "Неправильний Meeting ID або пароль"));
+        return new MeetingCheckResponse(meeting.title());
+    }
+
     /**
      * Організатора допускає миттєво завжди. Гостя — миттєво, якщо в заняття вимкнена
      * кімната очікування, інакше ставить його у чергу на допуск.
@@ -170,11 +187,21 @@ public class RoomService implements RoomApi {
                         || (g.getStatus() == GuestStatus.ADMITTED && (meeting.waitingRoomEnabled() || kickedBefore)))
                 .ifPresent(g -> registry.remove(meeting.id(), currentUserId));
         boolean wasKicked = kicked.getOrDefault(meeting.id(), Set.of()).contains(currentUserId);
-        boolean autoAdmit = isHost || (!meeting.waitingRoomEnabled() && !wasKicked);
+        // Заняття починається лише коли приєднався організатор: до того гість чекає на нього.
+        boolean hostPresent = isHost || isHostPresent(meeting);
+        boolean autoAdmit = isHost || (hostPresent && !meeting.waitingRoomEnabled() && !wasKicked);
+        boolean isNewEntry = registry.find(meeting.id(), currentUserId).isEmpty();
         WaitingGuest guest = registry.putIfAbsent(meeting.id(), currentUserId, user.displayName(), isHost, autoAdmit);
+        if (isNewEntry && !isHost && !hostPresent) {
+            guest.setAwaitingHost(true);
+        }
 
         if (autoAdmit && guest.getAccessToken() == null) {
             guest.admit(generateToken(meeting.id(), meeting.publicId(), currentUserId, user.displayName(), isHost));
+        }
+        if (isHost) {
+            endedAt.remove(meeting.id());
+            releaseAwaitingGuests(meeting);
         }
 
         return toStatusResponse(guest, meeting);
@@ -183,10 +210,47 @@ public class RoomService implements RoomApi {
     public RoomStatusResponse getStatus(UUID meetingId, UUID currentUserId) {
         MeetingAccess meeting = meetingApi.findById(meetingId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "meeting_not_found", "Заняття не знайдено"));
-        WaitingGuest guest = registry.find(meetingId, currentUserId)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "not_in_waiting_room",
-                        "Спершу приєднайтесь через /api/rooms/join"));
+        Optional<WaitingGuest> found = registry.find(meetingId, currentUserId);
+        if (found.isEmpty() && wasEndedRecently(meetingId)) {
+            return new RoomStatusResponse(meeting.id(), STATUS_ENDED, null, null, meeting.publicId(), false,
+                    meeting.title(), meeting.waitingRoomEnabled());
+        }
+        WaitingGuest guest = found.orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "not_in_waiting_room",
+                "Ви не в кімнаті очікування. Поверніться на головну сторінку й приєднайтесь до зустрічі знову"));
         return toStatusResponse(guest, meeting);
+    }
+
+    private boolean wasEndedRecently(UUID meetingId) {
+        Instant ended = endedAt.get(meetingId);
+        if (ended == null) {
+            return false;
+        }
+        if (ended.isBefore(Instant.now().minus(ENDED_NOTICE_TTL))) {
+            endedAt.remove(meetingId);
+            return false;
+        }
+        return true;
+    }
+
+    // Організатор «присутній», поки його запис у реєстрі допущений (він приєднався й не виходив).
+    private boolean isHostPresent(MeetingAccess meeting) {
+        return registry.find(meeting.id(), meeting.hostUserId())
+                .filter(g -> g.getStatus() == GuestStatus.ADMITTED)
+                .isPresent();
+    }
+
+    /**
+     * Організатор прийшов: гості, що чекали на нього, або одразу заходять (кімната очікування вимкнена),
+     * або переходять у звичайну чергу на допуск.
+     */
+    private void releaseAwaitingGuests(MeetingAccess meeting) {
+        for (WaitingGuest g : registry.listAwaitingHost(meeting.id())) {
+            g.setAwaitingHost(false);
+            boolean wasKicked = kicked.getOrDefault(meeting.id(), Set.of()).contains(g.getUserId());
+            if (!meeting.waitingRoomEnabled() && !wasKicked && g.getStatus() == GuestStatus.WAITING) {
+                g.admit(generateToken(meeting.id(), meeting.publicId(), g.getUserId(), g.getDisplayName(), false));
+            }
+        }
     }
 
     public List<WaitingGuestResponse> listWaiting(UUID meetingId, UUID currentUserId) {
@@ -203,6 +267,19 @@ public class RoomService implements RoomApi {
         guest.admit(generateToken(meetingId, publicId, guestUserId, guest.getDisplayName(), guest.isHost()));
         Set<UUID> k = kicked.get(meetingId);
         if (k != null) k.remove(guestUserId);
+    }
+
+    /** Допускає всіх, хто зараз у кімнаті очікування. */
+    public AdmitAllResponse admitAll(UUID meetingId, UUID currentUserId) {
+        String publicId = assertHost(meetingId, currentUserId);
+        int count = 0;
+        for (WaitingGuest guest : registry.listWaiting(meetingId)) {
+            guest.admit(generateToken(meetingId, publicId, guest.getUserId(), guest.getDisplayName(), false));
+            Set<UUID> k = kicked.get(meetingId);
+            if (k != null) k.remove(guest.getUserId());
+            count++;
+        }
+        return new AdmitAllResponse(count);
     }
 
     /** Змінює кімнату очікування під час проведення; діє на тих, хто заходитиме далі. */
@@ -305,6 +382,7 @@ public class RoomService implements RoomApi {
         String publicId = assertHost(meetingId, currentUserId);
         adminClient.deleteRoom(publicId);
         registry.clear(meetingId);
+        endedAt.put(meetingId, Instant.now());
         screenShareRequests.clear(meetingId);
         mutedMeetings.remove(meetingId);
         emptyTicks.remove(meetingId);
@@ -358,7 +436,9 @@ public class RoomService implements RoomApi {
 
     private RoomStatusResponse toStatusResponse(WaitingGuest guest, MeetingAccess meeting) {
         String serverUrl = guest.getStatus() == GuestStatus.ADMITTED ? properties.url() : null;
-        return new RoomStatusResponse(meeting.id(), guest.getStatus().name(), guest.getAccessToken(), serverUrl,
+        String status = guest.getStatus() == GuestStatus.WAITING && guest.isAwaitingHost()
+                ? STATUS_WAITING_FOR_HOST : guest.getStatus().name();
+        return new RoomStatusResponse(meeting.id(), status, guest.getAccessToken(), serverUrl,
                 meeting.publicId(), guest.isHost(), meeting.title(), meeting.waitingRoomEnabled());
     }
 

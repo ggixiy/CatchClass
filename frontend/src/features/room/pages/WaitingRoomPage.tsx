@@ -32,6 +32,7 @@ export function WaitingRoomPage() {
     const [status, setStatus] = useState<RoomStatus | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [leaving, setLeaving] = useState(false)
+    const [ended, setEnded] = useState(false)
 
     // Кімната очікування — це водночас і місце, де людина налаштовує камеру/мікрофон,
     // поки чекає на організатора. За замовчуванням пристрої вимкнені; якщо вона вже
@@ -159,7 +160,18 @@ export function WaitingRoomPage() {
                 const result = await getRoomStatus(meetingId!)
                 if (!active || leavingRef.current) return
                 setStatus(result)
-                if (result.status === 'ADMITTED') {
+                if (result.status === 'ENDED') {
+                    // Організатор завершив зустріч: далі чекати немає сенсу.
+                    leavingRef.current = true
+                    videoTrack?.stop()
+                    audioTrack?.stop()
+                    setVideoTrack(null)
+                    setAudioTrack(null)
+                    setCamOn(false)
+                    setMicOn(false)
+                    setError(null)
+                    setEnded(true)
+                } else if (result.status === 'ADMITTED') {
                     videoTrack?.stop()
                     audioTrack?.stop()
                     navigate(`/room/${meetingId}`, {
@@ -173,7 +185,11 @@ export function WaitingRoomPage() {
                 }
             } catch (err) {
                 if (!leavingRef.current) {
-                    setError(err instanceof ApiError ? err.message : t('waitingRoom.statusError'))
+                    // Не показуємо сирий текст сервера: або зрозуміле повідомлення, або загальне.
+                    const code = err instanceof ApiError ? err.problem.code : undefined
+                    setError(code === 'not_in_waiting_room' || code === 'meeting_not_found'
+                        ? t('waitingRoom.notInQueue')
+                        : t('waitingRoom.statusError'))
                 }
             }
         }
@@ -183,9 +199,23 @@ export function WaitingRoomPage() {
         return () => { active = false; clearInterval(interval) }
     }, [meetingId, navigate, videoTrack, audioTrack, camOn, micOn])
 
+    if (ended) {
+        return (
+            <main className="page">
+                <h1>{t('waitingRoom.endedTitle')}</h1>
+                <p>{t('waitingRoom.endedText')}</p>
+                <div className="form-actions">
+                    <button type="button" className="btn-primary" onClick={() => navigate('/')}>{t('waitingRoom.toHome')}</button>
+                </div>
+            </main>
+        )
+    }
+
+    const waitingForHost = status?.status === 'WAITING_FOR_HOST'
+
     return (
         <main className="page-media">
-            <h1>{t('waitingRoom.title')}</h1>
+            <h1>{waitingForHost ? t('waitingRoom.hostTitle') : t('waitingRoom.title')}</h1>
             {error && <p className="error">{error}</p>}
             <div className="preview-box">
                 {camOn
@@ -206,7 +236,7 @@ export function WaitingRoomPage() {
 
             <p className="hint">
                 {status?.roomName && <>{t('waitingRoom.meetingLabel')} <strong>{status.roomName}</strong><br /></>}
-                {t('waitingRoom.statusHint')}
+                {waitingForHost ? t('waitingRoom.hostHint') : t('waitingRoom.statusHint')}
             </p>
 
             <div className="form-actions">

@@ -3,6 +3,9 @@ package com.catchclass.room.internal.controller;
 import java.util.List;
 import java.util.UUID;
 
+import java.time.Duration;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.catchclass.room.internal.dto.AdmitAllResponse;
 import com.catchclass.room.internal.dto.JoinRoomRequest;
+import com.catchclass.room.internal.dto.MeetingCheckResponse;
 import com.catchclass.room.internal.dto.InviteResponse;
 import com.catchclass.room.internal.dto.ParticipantPhotoResponse;
 import com.catchclass.room.internal.dto.RoomStatusResponse;
@@ -21,20 +26,40 @@ import com.catchclass.room.internal.dto.ScreenShareRequestResponse;
 import com.catchclass.room.internal.dto.WaitingGuestResponse;
 import com.catchclass.room.internal.service.RoomService;
 import com.catchclass.shared.security.CurrentUser;
+import com.catchclass.shared.web.AttemptLimiter;
 
 @RestController
 @RequestMapping("/api/rooms")
 class RoomController {
 
-    private final RoomService roomService;
+    // Перебір Meeting ID/пароля: 10 невдалих спроб за хвилину (спільний лічильник для check і join).
+    private static final int JOIN_MAX_FAILURES = 10;
+    private static final Duration JOIN_WINDOW = Duration.ofMinutes(1);
 
-    RoomController(RoomService roomService) {
+    private final RoomService roomService;
+    private final AttemptLimiter limiter;
+
+    RoomController(RoomService roomService, AttemptLimiter limiter) {
         this.roomService = roomService;
+        this.limiter = limiter;
+    }
+
+    @PostMapping("/check")
+    MeetingCheckResponse check(@Valid @RequestBody JoinRoomRequest request, HttpServletRequest http) {
+        UUID userId = CurrentUser.require().id();
+        return limiter.guardFailures(joinKey(http, userId, request), JOIN_MAX_FAILURES, JOIN_WINDOW,
+                () -> roomService.check(userId, request.publicId(), request.password()));
     }
 
     @PostMapping("/join")
-    RoomStatusResponse join(@Valid @RequestBody JoinRoomRequest request) {
-        return roomService.join(CurrentUser.require().id(), request.publicId(), request.password());
+    RoomStatusResponse join(@Valid @RequestBody JoinRoomRequest request, HttpServletRequest http) {
+        UUID userId = CurrentUser.require().id();
+        return limiter.guardFailures(joinKey(http, userId, request), JOIN_MAX_FAILURES, JOIN_WINDOW,
+                () -> roomService.join(userId, request.publicId(), request.password()));
+    }
+
+    private static String joinKey(HttpServletRequest http, UUID userId, JoinRoomRequest request) {
+        return "join:" + http.getRemoteAddr() + ":" + userId + ":" + request.publicId().trim();
     }
 
     // meetingId тут — внутрішній id заняття, отриманий із відповіді /join.
@@ -64,6 +89,11 @@ class RoomController {
     @PostMapping("/{meetingId}/admit/{guestUserId}")
     void admit(@PathVariable UUID meetingId, @PathVariable UUID guestUserId) {
         roomService.admit(meetingId, CurrentUser.require().id(), guestUserId);
+    }
+
+    @PostMapping("/{meetingId}/admit-all")
+    AdmitAllResponse admitAll(@PathVariable UUID meetingId) {
+        return roomService.admitAll(meetingId, CurrentUser.require().id());
     }
 
     @PostMapping("/{meetingId}/deny/{guestUserId}")

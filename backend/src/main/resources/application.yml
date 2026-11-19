@@ -48,5 +48,7 @@ catchclass:
     api-secret: ${LIVEKIT_API_SECRET}
 
 server:
+  # Caddy стоїть перед застосунком: реальна IP клієнта береться з X-Forwarded-For (потрібно для лімітів)
+  forward-headers-strategy: framework
   tomcat:
     max-swallow-size: 10MB
