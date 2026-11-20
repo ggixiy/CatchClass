@@ -119,9 +119,33 @@
 .lk-video-conference-inner {
   background: var(--lk-bg);
 }
+/* Панель керування тут — плаваюча (position: fixed) і місця в потоці не займає, а LiveKit усе одно
+   віднімає від висоти розкладки --lk-control-bar-height, та ще й нижній відступ нижче: сцена
+   виходила на ~2 висоти панелі коротшою, і під відео лишався порожній проміжок. Тому висоту
+   розкладки задаємо самі: вона займає весь доступний простір між верхньою й нижньою панелями. */
+.lk-video-conference-inner {
+  height: 100%;
+}
+.lk-focus-layout-wrapper,
+.lk-grid-layout-wrapper {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+}
+.lk-focus-layout {
+  height: 100%;
+  min-height: 0;
+}
+/* Колонка з учасниками збоку при демонстрації: на великих екранах вужча за частку ширини,
+   щоб сама демонстрація займала якомога більше місця. */
+@media (min-width: 601px) {
+  .lk-focus-layout {
+    grid-template-columns: clamp(170px, 14vw, 280px) 1fr;
+  }
+}
 .lk-video-conference-inner {
   padding-top: 3.75rem; /* місце під верхню панель (назва, учасники, мова/тема) */
-  padding-bottom: 6rem;
+  padding-bottom: 5.5rem;
   box-sizing: border-box;
 }
 .lk-grid-layout {
@@ -161,8 +185,19 @@
   background: var(--surface-3);
   color: rgba(255, 255, 255, 0.78);
 }
+/* Підпис учасника лежить поверх відео (яке може бути яскравим), а не на тлі теми, тож колір
+   не залежить від теми: завжди світлий текст на темній напівпрозорій підкладці. Раніше текст
+   брав колір теми (темний на світлій), а підкладка була 50% чорного — на світлій темі виходив
+   темно-сірий текст на сірому й нічого не читалось. */
 .lk-participant-metadata-item {
   border-radius: var(--radius-pill);
+  background-color: rgba(18, 14, 26, 0.78);
+  color: #fff;
+  padding: 0.3rem 0.6rem;
+}
+.lk-participant-metadata-item .lk-participant-name,
+.lk-participant-metadata-item svg {
+  color: #fff;
 }
 .lk-username-container {
   font-weight: 600;

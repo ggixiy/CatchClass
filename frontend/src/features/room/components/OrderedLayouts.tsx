@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type { TrackReferenceOrPlaceholder } from '@livekit/components-core'
-import { TrackLoop, usePagination } from '@livekit/components-react'
+import { TrackLoop } from '@livekit/components-react'
 
 // Власні сітка й карусель замість GridLayout/CarouselLayout з LiveKit. Ті всередині
 // пересортовують плитки за «хто говорить / хто з камерою» (useVisualStableUpdate) і
@@ -10,15 +10,37 @@ import { TrackLoop, usePagination } from '@livekit/components-react'
 type TrackLoopCompat = (props: { tracks: TrackReferenceOrPlaceholder[]; children: React.ReactNode }) => JSX.Element
 const TypedTrackLoop = TrackLoop as unknown as TrackLoopCompat
 
+// Власна пагінація замість usePagination з LiveKit: той усередині викликає useVisualStableUpdate,
+// який знову переставляє плитки («хто говорить / хто з камерою» — на першу сторінку) і тим
+// скасовує наш порядок, зокрема чергу піднятих рук. Тут порядок лишається таким, яким його передали.
+function useOrderedPagination(itemsPerPage: number, tracks: TrackReferenceOrPlaceholder[]) {
+    const [page, setPage] = React.useState(1)
+    const totalPageCount = Math.max(Math.ceil(tracks.length / itemsPerPage), 1)
+    const currentPage = Math.min(page, totalPageCount)
+    const first = (currentPage - 1) * itemsPerPage
+    return {
+        totalPageCount,
+        currentPage,
+        tracks: tracks.slice(first, first + itemsPerPage),
+        prevPage: () => setPage(Math.max(currentPage - 1, 1)),
+        nextPage: () => setPage(Math.min(currentPage + 1, totalPageCount)),
+    }
+}
+
 interface OrderedLayoutProps {
     tracks: TrackReferenceOrPlaceholder[]
     children: React.ReactNode
 }
 
-// Плитки завжди одного розміру (як у списку учасників): у кадр потрапляє стільки, скільки вміщається,
-// решта — на наступних сторінках, між якими перемикають стрілки. Розмір не залежить від кількості учасників.
-const TILE_W = 336
-const TILE_H = 198
+// Плитки в сітці однакового розміру, але він підлаштовується під екран: на вузькому — 1–2 колонки,
+// на широкому — не більше MAX_COLS колонок і MAX_ROWS рядків, а плитки стають більшими, а не
+// множаться (на великому моніторі 30 дрібних плиток незручні). Що не вмістилося — на наступних
+// сторінках, між якими перемикають стрілки.
+const TILE_ASPECT = 336 / 198
+const MIN_TILE_W = 300   // вужче — зменшуємо кількість колонок
+const MAX_TILE_W = 560
+const MAX_COLS = 4
+const MAX_ROWS = 3
 const GAP = 12
 
 export function OrderedGrid({ tracks, children }: OrderedLayoutProps) {
@@ -35,12 +57,16 @@ export function OrderedGrid({ tracks, children }: OrderedLayoutProps) {
         return () => observer.disconnect()
     }, [])
 
-    // На дуже вузьких екранах плитка стискається до ширини екрана, зберігаючи пропорції.
-    const tileW = Math.min(TILE_W, Math.max(140, size.w - GAP * 2))
-    const tileH = Math.round((tileW * TILE_H) / TILE_W)
-    const cols = Math.max(1, Math.floor((size.w + GAP) / (tileW + GAP)))
-    const rows = Math.max(1, Math.floor((size.h + GAP) / (tileH + GAP)))
-    const pagination = usePagination(cols * rows, tracks)
+    const cols = Math.max(1, Math.min(MAX_COLS, Math.floor((size.w + GAP) / (MIN_TILE_W + GAP))))
+    let tileW = Math.min(MAX_TILE_W, Math.max(140, Math.floor((size.w - GAP * (cols - 1)) / cols)))
+    let tileH = Math.round(tileW / TILE_ASPECT)
+    // Якщо навіть один ряд не вміщається по висоті — зменшуємо плитку, зберігаючи пропорції.
+    if (size.h > 0 && tileH > size.h - GAP) {
+        tileH = Math.max(100, size.h - GAP)
+        tileW = Math.round(tileH * TILE_ASPECT)
+    }
+    const rows = Math.max(1, Math.min(MAX_ROWS, Math.floor((size.h + GAP) / (tileH + GAP))))
+    const pagination = useOrderedPagination(cols * rows, tracks)
     const paged = pagination.totalPageCount > 1
 
     return (
